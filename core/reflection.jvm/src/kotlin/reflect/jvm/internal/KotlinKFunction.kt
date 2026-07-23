@@ -140,17 +140,16 @@ internal abstract class KotlinKFunction(
                 member.parameterTypes.firstOrNull()?.isInterface == true
 
     private fun createStaticMethodCaller(member: Method, isCallByToValueClassMangledMethod: Boolean): Caller<*> =
-        if (isBound)
-            CallerImpl.Method.BoundStatic(
-                member, isCallByToValueClassMangledMethod, if (useBoxedBoundReceiver(member)) rawBoundReceiver else boundReceiver
-            )
-        else CallerImpl.Method.Static(member)
+        CallerImpl.Method.Static(
+            member, isCallByToValueClassMangledMethod,
+            boundReceiver = if (isBound && useBoxedBoundReceiver(member)) rawBoundReceiver else boundReceiver,
+        )
 
     private fun createJvmStaticInObjectCaller(member: Method): Caller<*> =
-        if (isBound) CallerImpl.Method.BoundJvmStaticInObject(member) else CallerImpl.Method.JvmStaticInObject(member)
+        CallerImpl.Method.JvmStaticInObject(member, boundReceiver)
 
     private fun createInstanceMethodCaller(member: Method): Caller<*> =
-        if (isBound) CallerImpl.Method.BoundInstance(member, boundReceiver) else CallerImpl.Method.Instance(member)
+        CallerImpl.Method.Instance(member, boundReceiver)
 
     private fun createConstructorCaller(member: Constructor<*>, isDefault: Boolean): CallerImpl<Constructor<*>> {
         return if (!isDefault && this is KotlinKConstructor && shouldHideConstructorDueToValueClassTypeValueParameters(this)) {
