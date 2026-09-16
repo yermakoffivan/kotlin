@@ -37,6 +37,7 @@ abstract class NodeTypeAnalyzer<Node : Any, Type : Any> {
     abstract val implicitType: FirImplicitTypeRef
     abstract val implicitUnitType: FirImplicitBuiltinTypeRef
     abstract val implicitAnyType: FirImplicitBuiltinTypeRef
+    abstract val implicitRichErrorType: FirImplicitBuiltinTypeRef
     abstract val implicitEnumType: FirImplicitBuiltinTypeRef
     abstract val implicitAnnotationType: FirImplicitBuiltinTypeRef
 
