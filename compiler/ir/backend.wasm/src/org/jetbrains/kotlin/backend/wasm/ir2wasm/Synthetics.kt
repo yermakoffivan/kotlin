@@ -59,6 +59,10 @@ object Synthetics {
     private val stringLiteralJsStringFunctionTypeSignature = "stringLiteralJsStringFunctionType".toSyntheticSignature()
     private val parameterlessNoReturnFunctionTypeSignature = "parameterlessNoReturnFunctionTypeSignature".toSyntheticSignature()
     private val jsExceptionTagFuncTypeSignature = "jsExceptionTagFuncType".toSyntheticSignature()
+    private val wasmContTagFuncTypeSignature = "wasmContTagFuncType".toSyntheticSignature()
+
+    // bound Stack Switching continuation
+    private val boundContTypeSignature = "boundContType".toSyntheticSignature()
 
     private val throwableBuiltInTypeSignature = "throwableBuiltInType".toSyntheticSignature()
     private val anyBuiltInTypeSignature = "anyBuiltInType".toSyntheticSignature()
@@ -75,6 +79,7 @@ object Synthetics {
         val associatedObjectGetterWrapper = GcHeapTypeSymbol(associatedObjectGetterWrapperSignature)
         val throwableBuiltInType = GcHeapTypeSymbol(throwableBuiltInTypeSignature)
         val anyBuiltInType = GcHeapTypeSymbol(anyBuiltInTypeSignature)
+        val boundContType = ContHeapTypeSymbol(boundContTypeSignature)
     }
 
     object GcTypes {
@@ -88,6 +93,7 @@ object Synthetics {
         val associatedObjectGetterWrapper = GcTypeSymbol(associatedObjectGetterWrapperSignature)
         val stringLiteralFunctionType = FunctionTypeSymbol(stringLiteralFunctionTypeSignature)
         val stringLiteralJsStringFunctionType = FunctionTypeSymbol(stringLiteralJsStringFunctionTypeSignature)
+        val boundContType = ContTypeSymbol(boundContTypeSignature)
     }
 
     object FunctionHeapTypes {
@@ -96,8 +102,7 @@ object Synthetics {
         val jsExceptionTagFuncType = FunctionHeapTypeSymbol(jsExceptionTagFuncTypeSignature)
         val parameterlessNoReturnFunctionType = FunctionHeapTypeSymbol(parameterlessNoReturnFunctionTypeSignature)
         val associatedObjectGetterType = FunctionHeapTypeSymbol(associatedObjectGetterTypeSignature)
-
-        val wasmContFunctionType = ContFunctionHeapTypeSymbol(1)
+        val wasmContTagFuncType = FunctionHeapTypeSymbol(wasmContTagFuncTypeSignature)
     }
 
 }

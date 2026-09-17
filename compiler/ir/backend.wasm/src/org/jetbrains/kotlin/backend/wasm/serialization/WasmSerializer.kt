@@ -88,8 +88,7 @@ class WasmSerializer(outputStream: OutputStream) {
         serializeDefinedTypeDeclarations(definedGcTypes)
         serializeDefinedStructDeclarations(definedVTableGcTypes)
         serializeDefinedFunctionTypesDeclarations(definedFunctionTypes)
-        serializeMap(contTypes, ::serializeInt, ::serializeWasmContType)
-        serializeMap(contFunctionTypes, ::serializeInt, ::serializeWasmFunctionType)
+        serializeMap(contTypes, ::serializeIdSignature, ::serializeWasmContType)
     }
 
     fun serializeCompiledDeclarations(definedDeclarations: WasmCompiledDeclarationsFileFragment) = with(definedDeclarations) {
@@ -155,7 +154,6 @@ class WasmSerializer(outputStream: OutputStream) {
 
     private fun serializeWasmContType(funcType: WasmContType) =
         serializeNamedModuleField(funcType) {
-            serializeInt(funcType.arity)
             serializeWasmHeapType(funcType.funType)
         }
 
@@ -237,8 +235,7 @@ class WasmSerializer(outputStream: OutputStream) {
             is GcHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_GC_TYPE) { serializeIdSignature(type.type) }
             is VTableHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_VT_TYPE) { serializeIdSignature(type.type) }
             is FunctionHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_FUNC_TYPE) { serializeIdSignature(type.type) }
-            is ContFunctionHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_CONT_FUNC_TYPE) { serializeInt(type.arity) }
-            is ContHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_CONT_TYPE) { serializeInt(type.arity) }
+            is ContHeapTypeSymbol -> withTag(HeapTypeTags.HEAP_CONT_TYPE) { serializeIdSignature(type.type) }
             WasmHeapType.Simple.Cont -> setTag(HeapTypeTags.CONT)
             WasmHeapType.Simple.NoCont -> setTag(HeapTypeTags.NO_CONT)
             else -> error("Unknown heap type:${type::class.simpleName}")
@@ -313,7 +310,7 @@ class WasmSerializer(outputStream: OutputStream) {
             is GcTypeSymbol -> withTag(ImmediateTags.GC_TYPE) { serializeIdSignature(i.value) }
             is VTableTypeSymbol -> withTag(ImmediateTags.VT_TYPE) { serializeIdSignature(i.value) }
             is FunctionTypeSymbol -> withTag(ImmediateTags.FUNC_TYPE) { serializeIdSignature(i.value) }
-            is ContTypeSymbol -> withTag(ImmediateTags.CONT_TYPE) { serializeInt(i.arity) }
+            is ContTypeSymbol -> withTag(ImmediateTags.CONT_TYPE) { serializeIdSignature(i.type) }
 
             is FieldGlobalSymbol -> withTag(ImmediateTags.GLOBAL_FIELD) { serializeIdSignature(i.value) }
             is VTableGlobalSymbol -> withTag(ImmediateTags.GLOBAL_VTABLE) { serializeIdSignature(i.value) }

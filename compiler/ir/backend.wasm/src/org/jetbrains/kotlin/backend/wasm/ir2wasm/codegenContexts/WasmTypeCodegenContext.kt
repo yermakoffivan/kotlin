@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.wasm.ir.WasmContType
 import org.jetbrains.kotlin.wasm.ir.WasmFunctionType
+import org.jetbrains.kotlin.wasm.ir.WasmRefNullType
 import org.jetbrains.kotlin.wasm.ir.WasmStructDeclaration
 import org.jetbrains.kotlin.wasm.ir.WasmTypeDeclaration
 
@@ -61,14 +62,6 @@ open class WasmTypeCodegenContext(
         }
     }
 
-    fun defineContType(arity: Int, wasmContType: WasmContType) {
-        wasmFileFragment.contTypes[arity] = wasmContType
-    }
-
-    fun defineContFunctionType(arity: Int, wasmType: WasmFunctionType) {
-        wasmFileFragment.contFunctionTypes[arity] = wasmType
-    }
-
     open fun referenceWasmFunctionType(wasmFunctionType: WasmFunctionType): FunctionTypeSymbol {
         val signature = getFunctionTypeSignature(wasmFunctionType)
         wasmFileFragment.definedFunctionTypes.putIfAbsent(signature, wasmFunctionType)
@@ -99,12 +92,27 @@ open class WasmTypeCodegenContext(
     open fun referenceFunctionHeapType(irClass: IrFunctionSymbol): FunctionHeapTypeSymbol =
         FunctionHeapTypeSymbol(irClass.getReferenceKey())
 
-    fun referenceContType(arity: Int): ContTypeSymbol =
-        ContTypeSymbol(arity)
+    fun referenceSuspendFunctionContType(suspendFunctionInvoke: IrFunctionSymbol, arity: Int): ContTypeSymbol {
+        val signature = suspendFunctionInvoke.getReferenceKey()
+        val wasmContType = WasmContType("cont_$arity", referenceFunctionHeapType(suspendFunctionInvoke))
+        wasmFileFragment.contTypes.putIfAbsent(signature, wasmContType)
+        return ContTypeSymbol(signature)
+    }
 
-    fun referenceHeapContType(arity: Int): ContHeapTypeSymbol =
-        ContHeapTypeSymbol(arity)
+    fun referenceBoundContType(): ContTypeSymbol {
+        defineBoundContType()
+        return Synthetics.GcTypes.boundContType
+    }
 
-    fun referenceHeapContFunctionType(arity: Int): ContFunctionHeapTypeSymbol =
-        ContFunctionHeapTypeSymbol(arity)
+    fun referenceBoundedContHeapType(): ContHeapTypeSymbol {
+        defineBoundContType()
+        return Synthetics.HeapTypes.boundContType
+    }
+
+    // Type of bounded Stack Switching continuation
+    private fun defineBoundContType() {
+        val kotlinAnyRefNull = WasmRefNullType(Synthetics.HeapTypes.anyBuiltInType)
+        val funType = referenceWasmFunctionHeapType(WasmFunctionType(emptyList(), listOf(kotlinAnyRefNull)))
+        wasmFileFragment.contTypes.putIfAbsent(Synthetics.HeapTypes.boundContType.type, WasmContType("cont_0", funType))
+    }
 }

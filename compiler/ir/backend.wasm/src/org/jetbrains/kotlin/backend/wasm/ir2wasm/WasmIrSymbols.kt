@@ -23,8 +23,7 @@ class LiteralGlobalSymbol(val value: String) : WasmImmediate.GlobalIdx() {
 class GcTypeSymbol(val value: IdSignature) : WasmImmediate.TypeIdx()
 class VTableTypeSymbol(val value: IdSignature) : WasmImmediate.TypeIdx()
 class FunctionTypeSymbol(val value: IdSignature) : WasmImmediate.TypeIdx()
-class ContTypeSymbol(val arity: Int) : WasmImmediate.TypeIdx()
-class ContFunctionTypeSymbol(val arity: Int) : WasmImmediate.TypeIdx()
+class ContTypeSymbol(val type: IdSignature) : WasmImmediate.TypeIdx()
 
 class GcHeapTypeSymbol(val type: IdSignature) : Type.GcType() {
     override fun hashCode(): Int = type.hashCode()
@@ -44,14 +43,8 @@ class FunctionHeapTypeSymbol(val type: IdSignature) : Type.FunctionType() {
     override fun toString(): String = "FunctionHeapTypeSymbol:$type"
 }
 
-class ContHeapTypeSymbol(val arity: Int) : Type.ContType() {
-    override fun hashCode(): Int = arity
-    override fun equals(other: Any?): Boolean = other is ContHeapTypeSymbol && arity == other.arity
-    override fun toString(): String = "ContHeapTypeSymbol:$arity"
-}
-
-class ContFunctionHeapTypeSymbol(val arity: Int) : Type.ContFunctionType() {
-    override fun hashCode(): Int = arity
-    override fun equals(other: Any?): Boolean = other is ContFunctionHeapTypeSymbol && arity == other.arity
-    override fun toString(): String = "ContFunctionHeapTypeSymbol:$arity"
+class ContHeapTypeSymbol(val type: IdSignature) : Type.ContType() {
+    override fun hashCode(): Int = type.hashCode()
+    override fun equals(other: Any?): Boolean = other is ContHeapTypeSymbol && type == other.type
+    override fun toString(): String = "ContHeapTypeSymbol:$type"
 }
