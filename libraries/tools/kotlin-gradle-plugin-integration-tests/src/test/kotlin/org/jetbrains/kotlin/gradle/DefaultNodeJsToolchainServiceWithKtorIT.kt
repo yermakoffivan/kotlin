@@ -17,18 +17,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.BuildPlatform
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.DefaultNodeJsToolchainService
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsExecutable
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsVersion
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.UsesNodeJsToolchainService
+import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.*
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.util.awaitInitialization
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -275,23 +271,22 @@ class DefaultNodeJsToolchainServiceWithKtorIT : KGPBaseTest() {
                 objects: ObjectFactory,
             ) : DefaultTask(), UsesNodeJsToolchainService {
                 @get:Internal
-                val version: Property<String> = objects.property()
+                val version: Property<String> = objects.property<String>()
 
                 @get:Internal
-                val buildPlatform: Property<BuildPlatform> = objects.property()
+                val buildPlatform: Property<BuildPlatform> = objects.property<BuildPlatform>()
 
-                @get:Nested
-                val nodeJsExecutable: Provider<NodeJsExecutable> =
-                    nodeJsToolchainService.flatMap {
-                        it.request {
-                            this.platform.set(this@ProvisionNodeJsTask.buildPlatform)
-                            this.version.set(this@ProvisionNodeJsTask.version.map { NodeJsVersion(it) })
-                        }
+                @get:Input
+                val nodeJsRequest: Provider<NodeJsRequest> = version.zip(buildPlatform) { version, platform ->
+                    objects.newInstance(NodeJsRequest::class.java).also {
+                        it.version.set(NodeJsVersion(version))
+                        it.platform.set(platform)
                     }
+                }
 
                 @TaskAction
                 fun action() {
-                    // `kotlin.test` is not on the classpath of the build the task runs in.
+                    val nodeJsExecutable = nodeJsToolchainService.get().request(nodeJsRequest.get())
                     val executable = File(nodeJsExecutable.get().executable.get())
                     check(executable.isFile) { "'$executable' is not a provisioned Node.js executable" }
                 }
