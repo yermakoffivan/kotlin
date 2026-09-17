@@ -109,6 +109,12 @@ private object DomainSourcesGenerator {
                     this += "|    Domain.${domain.name} -> TestSubset.ContractTestsFor${domain.name}"
                 }
                 this += "|}"
+                this += "|"
+                this += "|val ALL_CONTRACTS = setOf("
+                for (domain in domains) {
+                    this += "|    TestSubset.ContractTestsFor${domain.name},"
+                }
+                this += ")"
             }.trimMargin()
         )
     }

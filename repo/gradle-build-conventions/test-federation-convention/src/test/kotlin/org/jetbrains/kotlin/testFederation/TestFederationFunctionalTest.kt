@@ -4,6 +4,7 @@
  */
 
 @file:Suppress("FunctionName")
+@file:OptIn(ExperimentalPathApi::class)
 
 package org.jetbrains.kotlin.testFederation
 
@@ -12,23 +13,22 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.jetbrains.kotlin.testFederation.TestBuildResult.TestResult
+import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Path
-import kotlin.collections.filterNot
-import kotlin.io.path.Path
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.fail
+import kotlin.io.path.*
+import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 /**
  * Runs `:repo:test-runtime:test` with different modes and domain selections, then checks which tests ran.
  * Covers full test runs, selection by annotations and automatic sampling, and nightly filters.
  */
+
 class TestFederationFunctionalTest {
 
     @Test
@@ -124,20 +124,20 @@ class TestFederationFunctionalTest {
 
 
     /**
-     * Configuring RunAllTests selects all tests even when a different mode is explicitly requested.
+     * Configuring 'alwaysRunAllTests' selects all tests even when a different mode is explicitly requested.
      */
     @Test
-    fun `test - smokeTestConfig RunAllTests`() {
-        val result = runTestBuild(TestFederationMode.Smoke, smokeTestConfig = "RunAllTests")
+    fun `test - alwaysRunAllTests`() {
+        val result = runTestBuild(TestFederationMode.Smoke, runAllTestsAlways = true)
         assertEquals(allTests, result.executedTests)
     }
 
     /**
-     * Configuring Disabled skips the task when it is not selected for a full test run.
+     * Configuring 'notCompatibleWithTestFederation' skips the task when it is not selected for a full test run.
      */
     @Test
-    fun `test - smokeTestConfig Disabled`() {
-        val result = runTestBuild(TestFederationMode.Smoke, smokeTestConfig = "Disabled")
+    fun `test - notCompatibleWithTestFederation`() {
+        val result = runTestBuild(TestFederationMode.Smoke, notCompatibleWithTestFederation = true)
         assertEquals(
             emptySet(),
             result.executedTests
@@ -194,6 +194,27 @@ class TestFederationFunctionalTest {
     }
 
     @Test
+    fun `test - PlainTests selects only untagged tests`() {
+        val result = runTestBuild(subsets = "PlainTests")
+        assertEquals(
+            setOf(TestResult("PseudoTest", "domain test")),
+            result.executedTests
+        )
+    }
+
+    @Test
+    fun `test - PlainTests combined with SmokeTests selects plain and smoke tests`() {
+        val result = runTestBuild(subsets = "PlainTests,SmokeTests")
+        assertEquals(
+            setOf(
+                TestResult("PseudoTest", "domain test"),
+                TestResult("PseudoTest", "smoke test"),
+            ),
+            result.executedTests
+        )
+    }
+
+    @Test
     fun `test - explicit subsets override selects requested subsets`() {
         run {
             val result = runTestBuild(subsets = "SmokeTests")
@@ -231,12 +252,12 @@ class TestFederationFunctionalTest {
 
     @Test
     fun `test - explicit subsets override does not override alwaysRunAllTests`() {
-        val result = runTestBuild(subsets = "SmokeTests", smokeTestConfig = "RunAllTests")
+        val result = runTestBuild(subsets = "SmokeTests", runAllTestsAlways = true)
         assertEquals(allTests, result.executedTests)
     }
 
     /**
-     * We will check if  running a test with test federation (full mode) produces a cache entry, which can be used
+     * We will check if running a test with test federation (full mode) produces a cache entry, which can be used
      * by running the same test task with test federation disabled.
      */
     @Test
@@ -303,7 +324,7 @@ class TestFederationFunctionalTest {
     }
 
     @Test
-    fun `test - build with test federation disabled - build with test federation enabled (full) and smoke+runAllTests - reuses build caches`(
+    fun `test - build with test federation disabled - build with test federation enabled (full) and alwaysRunAllTests - reuses build caches`(
         @TempDir cache: Path,
     ) {
         val buildCacheArgs = buildCacheArgs(cache)
@@ -311,7 +332,7 @@ class TestFederationFunctionalTest {
         cleanTest()
         runTestBuild(
             mode = TestFederationMode.Full,
-            smokeTestConfig = "RunAllTests",
+            runAllTestsAlways = true,
             changed = Domain.entries.toTypedArray(),
             additionalCliArgs = buildCacheArgs,
             rerun = false,
@@ -326,7 +347,7 @@ class TestFederationFunctionalTest {
         cleanTest()
         runTestBuild(
             mode = TestFederationMode.Smoke,
-            smokeTestConfig = "RunAllTests",
+            runAllTestsAlways = true,
             changed = Domain.entries.toTypedArray(),
             additionalCliArgs = buildCacheArgs,
             rerun = false,
@@ -616,6 +637,34 @@ class TestFederationFunctionalTest {
             "Neither 'BeforeAll' nor 'AfterAll' should execute when no tests are selected"
         )
     }
+
+    @Test
+    @CleanConfigurationCache
+    fun `test - running contract tests - after smoke tests - reuses configuration cache`() {
+        val smokeTests = runTestBuild(subsets = "SmokeTests")
+        assertTrue(smokeTests.buildResult.output.contains("Configuration cache entry stored."))
+
+        run {
+            val contractTests = runTestBuild(subsets = "ContractTestsForJs,ContractTestsForWasm")
+            assertTrue(contractTests.buildResult.output.contains("Configuration cache entry reused."))
+            assertEquals(
+                setOf(
+                    TestResult("PseudoTest", "js contract test"),
+                    TestResult("PseudoTest", "wasm contract test")
+                ), contractTests.executedTests
+            )
+        }
+
+        run {
+            val contractTests = runTestBuild(subsets = "ContractTestsForJs")
+            assertTrue(contractTests.buildResult.output.contains("Configuration cache entry reused."))
+            assertEquals(
+                setOf(
+                    TestResult("PseudoTest", "js contract test"),
+                ), contractTests.executedTests
+            )
+        }
+    }
 }
 
 private val allTests = setOf(
@@ -647,7 +696,8 @@ private fun runTestBuild(
     mode: TestFederationMode? = null,
     vararg changed: Domain,
     affected: List<Domain> = changed.toList(),
-    smokeTestConfig: String? = null,
+    runAllTestsAlways: Boolean = false,
+    notCompatibleWithTestFederation: Boolean = false,
     testTaskDomainsOverride: List<Domain>? = null,
     testFederationEnabled: Boolean = true,
     nightly: Boolean? = null,
@@ -672,8 +722,12 @@ private fun runTestBuild(
             this[TEST_FEDERATION_SUBSETS_ENV_KEY] = subsetsEnv
         }
 
-        if (smokeTestConfig != null) {
-            this["_PSEUDO_TEST_"] = smokeTestConfig
+        if (runAllTestsAlways) {
+            this["_RUN_ALL_TESTS_ALWAYS_"] = "true"
+        }
+
+        if (notCompatibleWithTestFederation) {
+            this["_RUN_ALL_TESTS_OR_SKIP_"] = "true"
         }
 
         if (testTaskDomainsOverride != null) {
@@ -787,3 +841,22 @@ private fun buildCacheArgs(cache: Path) = listOf(
 
 private fun BuildResult.requireTask(path: String) =
     task(path) ?: fail("Task '$path' could not be found\nTasks: ${tasks.joinToString("\n")}")
+
+
+@ExtendWith(CleanConfigurationCacheExtension::class)
+private annotation class CleanConfigurationCache
+
+private class CleanConfigurationCacheExtension : BeforeEachCallback, AfterEachCallback {
+    private val configurationCacheDir = Path(".gradle/configuration-cache")
+    private val configurationCacheBackupDir = Path(".gradle/configuration-cache.backup")
+
+    override fun beforeEach(context: ExtensionContext?) {
+        if (configurationCacheBackupDir.exists()) configurationCacheBackupDir.deleteRecursively()
+        configurationCacheDir.moveTo(configurationCacheBackupDir, overwrite = true)
+    }
+
+    override fun afterEach(context: ExtensionContext?) {
+        if (configurationCacheDir.exists() && configurationCacheBackupDir.exists()) configurationCacheDir.deleteRecursively()
+        configurationCacheBackupDir.moveTo(configurationCacheDir, overwrite = true)
+    }
+}

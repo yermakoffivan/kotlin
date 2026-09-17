@@ -46,3 +46,23 @@ fun contractTestsSubsetOf(domain: Domain): TestSubset = when (domain) {
     Domain.BuildInfrastructure -> TestSubset.ContractTestsForBuildInfrastructure
     Domain.Unknown -> TestSubset.ContractTestsForUnknown
 }
+
+val ALL_CONTRACTS = setOf(
+    TestSubset.ContractTestsForCompilerInfrastructure,
+    TestSubset.ContractTestsForFrontend,
+    TestSubset.ContractTestsForCommonBackend,
+    TestSubset.ContractTestsForJvm,
+    TestSubset.ContractTestsForWasm,
+    TestSubset.ContractTestsForJs,
+    TestSubset.ContractTestsForNative,
+    TestSubset.ContractTestsForCoreLibs,
+    TestSubset.ContractTestsForAnalysisApi,
+    TestSubset.ContractTestsForBuildToolsApi,
+    TestSubset.ContractTestsForSwiftExport,
+    TestSubset.ContractTestsForCompilerPlugins,
+    TestSubset.ContractTestsForGradle,
+    TestSubset.ContractTestsForMaven,
+    TestSubset.ContractTestsForIntelliJ,
+    TestSubset.ContractTestsForBuildInfrastructure,
+    TestSubset.ContractTestsForUnknown,
+)

@@ -81,6 +81,7 @@ class DefaultStrategyAgnosticCompilationTestArgumentProvider : ArgumentsProvider
                         namedArgument.payload().let { it to it.createInProcessExecutionPolicy() }
                     },
                     // We do not test the daemon when running in Smoke test mode
+
                     if (testFederationAllTestsRequested) {
                         named(
                             "${namedArgument.name}[daemon]"

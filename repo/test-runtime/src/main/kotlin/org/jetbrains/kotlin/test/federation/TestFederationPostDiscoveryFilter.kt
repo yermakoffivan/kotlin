@@ -18,20 +18,27 @@ internal class TestFederationPostDiscoveryFilter : PostDiscoveryFilter {
     override fun apply(descriptor: TestDescriptor): FilterResult {
         val source = descriptor.source.getOrNull() as? MethodSource
             ?: return included("Not a method-based test")
-        val clusters = testFederationSubsets
+        val subsets = testFederationSubsets
             ?: return included("$TEST_FEDERATION_SUBSETS_KEY is not set")
 
-        if (TestSubset.AllTests in clusters) return included("'${TestSubset.AllTests}' is requested")
+        if (TestSubset.AllTests in subsets) return included("'${TestSubset.AllTests}' is requested")
 
-        if (TestSubset.SmokeTests in clusters) {
-            if (isAutoSmokeTest(descriptor, source)) return included("Auto smoke test selected")
-            if (isMustRunAlways(descriptor)) return included("@${MustRunAlways::class.java.simpleName}")
+        val isSmokeTest = isAutoSmokeTest(descriptor, source) || isMustRunAlways(descriptor)
+
+        if (TestSubset.SmokeTests in subsets && isSmokeTest) {
+            return included("Auto smoke test selected or @${MustRunAlways::class.java.simpleName}")
         }
 
-        val matchedContracts = clusters.mapNotNull(::contractTagOf).filter { tag -> descriptor.tags.any { it.name == tag } }
+        val matchedContracts = subsets.mapNotNull(::contractTagOf).filter { tag -> descriptor.tags.any { it.name == tag } }
         if (matchedContracts.isNotEmpty()) {
             return included("Contracts: ${matchedContracts.joinToString(", ") { it.removePrefix("contract:") }}")
         }
+
+        if (TestSubset.PlainTests in subsets) {
+            val isContractTest = descriptor.tags.any { it.name.startsWith("contract:") }
+            if (!isSmokeTest && !isContractTest) return included("'${TestSubset.PlainTests}' is requested")
+        }
+
         return excluded("Not selected automatically / Not @MustRunAlways / Not a contract test")
     }
 }
