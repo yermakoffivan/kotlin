@@ -157,6 +157,13 @@ projectTests {
         setUpJsBoxTests()
     }
 
+    jsTestTask(taskName = "jsSwcTest", tag = "swc", skipInLocalBuild = true) {
+        with(swcKotlinBuild) {
+            setupSwc()
+        }
+        setUpJsBoxTests()
+    }
+
     testTask("invalidationTest", skipInLocalBuild = true) {
         useJsIrBoxTests(buildDir = layout.buildDirectory)
         include("org/jetbrains/kotlin/incremental/*")

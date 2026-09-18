@@ -155,6 +155,14 @@ fun main(args: Array<String>) {
                 model("boxInline")
             }
 
+            testClass<AbstractJsSwcCodegenBoxTest>(annotations = [tag("swc")]) {
+                model("box", excludeDirs = jvmOnlyBoxTests + k1BoxTestDir)
+            }
+
+            testClass<AbstractJsSwcCodegenBoxInlineTest>(annotations = [tag("swc")]) {
+                model("boxInline")
+            }
+
             testClass<AbstractFirJsLightTreeHeaderModeCodegenTest> {
                 model("box", excludeDirs = jvmOnlyBoxTests + k1BoxTestDir)
             }
@@ -262,6 +270,7 @@ fun main(args: Array<String>) {
     }
 }
 
-private fun es6() = arrayOf(
-    annotation(Tag::class.java, "es6")
-)
+private fun es6() = arrayOf(tag("es6"))
+
+private fun tag(theTag: String) =
+    annotation(Tag::class.java, theTag)

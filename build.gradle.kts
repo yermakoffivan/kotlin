@@ -341,6 +341,10 @@ tasks {
         dependsOn(":js:js.tests:jsES6Test")
     }
 
+    testLifecycleTask("jsSwcTest", QualityGate.Nightly) {
+        dependsOn(":js:js.tests:jsSwcTest")
+    }
+
     testLifecycleTask("jsKlibCompatibilityTest", QualityGate.Master) {
         dependsOn(":js:js.tests:klib-compatibility:testMinimalInAggregate")
     }
