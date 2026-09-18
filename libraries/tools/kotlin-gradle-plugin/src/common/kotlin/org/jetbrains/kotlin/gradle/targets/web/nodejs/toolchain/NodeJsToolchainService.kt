@@ -16,6 +16,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.BuildServiceUsingKotlinToolingDiagnostics
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.KotlinToolingDiagnostics
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.reportDiagnosticOncePerProject
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.computeNodeBinDir
 import org.jetbrains.kotlin.gradle.tasks.withType
 import org.jetbrains.kotlin.gradle.utils.SingleActionPerProject
@@ -113,12 +116,11 @@ interface NodeJsToolchainService<P : NodeJsToolchainService.Parameters> : BuildS
          */
         private const val MINIMAL_SUPPORTED_NODE_JS_MAJOR_VERSION = 18
 
-        internal fun Logger.warnIfNodeJsUnsupported(version: NodeJsVersion) {
-            val majorVersion = version.majorVersion
-            if (majorVersion != null && majorVersion < MINIMAL_SUPPORTED_NODE_JS_MAJOR_VERSION) {
-                warn(
-                    "Node.js $version is not supported by the Kotlin Gradle Plugin. " +
-                            "The minimal supported version is $MINIMAL_SUPPORTED_NODE_JS_MAJOR_VERSION."
+        internal fun BuildServiceUsingKotlinToolingDiagnostics<*>.reportDiagnosticWhenNodeJsVersionUnsupported(installedVersion: NodeJsVersion) {
+            val installedMajorVersion = installedVersion.majorVersion
+            if (installedMajorVersion != null && installedMajorVersion < MINIMAL_SUPPORTED_NODE_JS_MAJOR_VERSION) {
+                reportDiagnostic(
+                    KotlinToolingDiagnostics.NodeJsVersionIsNotSupported(installedVersion, MINIMAL_SUPPORTED_NODE_JS_MAJOR_VERSION)
                 )
             }
         }

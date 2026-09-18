@@ -13,7 +13,11 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.BuildServiceUsingKotlinToolingDiagnostics
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.KotlinToolingDiagnostics
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.setupKotlinToolingDiagnosticsParameters
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.nodeJsServiceName
+import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.reportDiagnosticWhenNodeJsVersionUnsupported
 import org.jetbrains.kotlin.gradle.utils.newInstance
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -22,9 +26,11 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
     private val objects: ObjectFactory,
     private val providers: ProviderFactory,
     private val execOperations: ExecOperations,
-) : NodeJsToolchainService<PreInstalledNodeJsToolchainService.Parameters> {
+) : NodeJsToolchainService<PreInstalledNodeJsToolchainService.Parameters>,
+    BuildServiceUsingKotlinToolingDiagnostics<PreInstalledNodeJsToolchainService.Parameters> {
 
-    abstract class Parameters : NodeJsToolchainService.Parameters {
+    abstract class Parameters : NodeJsToolchainService.Parameters,
+        BuildServiceUsingKotlinToolingDiagnostics.Parameters {
         abstract val nodeJsExecutable: Property<String>
     }
 
@@ -36,12 +42,16 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
             val command = parameters.nodeJsExecutable.get()
             val (installedVersion, installedPlatform) = detectInstalledNodeJs(command)
 
+            reportDiagnosticWhenNodeJsVersionUnsupported(installedVersion)
+
             val requestedVersion = nodeJsRequest.version.orNull
             if (requestedVersion != null && requestedVersion.normalized != installedVersion.normalized) {
-                logger.warn(
-                    "w: Node.js $installedVersion found by '$command' does not match the requested " +
-                            "version $requestedVersion. The requested version cannot be provisioned, because " +
-                            "the Node.js toolchain is configured to use a pre-installed Node.js."
+                reportDiagnostic(
+                    KotlinToolingDiagnostics.PreInstalledNodeJsVersionMismatch(
+                        installedVersion = installedVersion,
+                        requestedVersion = requestedVersion,
+                        command = command,
+                    )
                 )
             }
             nodeJsRequest.platform.orNull?.let { platform ->
@@ -97,6 +107,7 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
                 nodeJsServiceName,
                 PreInstalledNodeJsToolchainService::class.java
             ) { spec ->
+                spec.parameters.setupKotlinToolingDiagnosticsParameters(project)
                 spec.parameters.nodeJsExecutable.set(project.kotlinPropertiesProvider.nodeJsToolchainLocalPath.getOrElse("node"))
             }
         }

@@ -15,9 +15,10 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.BuildServiceUsingKotlinToolingDiagnostics
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.nodeJsExecutableFile
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.nodeJsServiceName
-import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.warnIfNodeJsUnsupported
+import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.reportDiagnosticWhenNodeJsVersionUnsupported
 import org.jetbrains.kotlin.gradle.utils.newInstance
 import org.jetbrains.kotlin.gradle.utils.userKotlinPersistentDir
 import java.io.File
@@ -39,9 +40,10 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     private val providers: ProviderFactory,
     fs: FileSystemOperations,
     archiveOperations: ArchiveOperations,
-) : NodeJsToolchainService<DefaultNodeJsToolchainService.Parameters> {
+) : NodeJsToolchainService<DefaultNodeJsToolchainService.Parameters>,
+    BuildServiceUsingKotlinToolingDiagnostics<DefaultNodeJsToolchainService.Parameters> {
 
-    abstract class Parameters : NodeJsToolchainService.Parameters {
+    abstract class Parameters : NodeJsToolchainService.Parameters, BuildServiceUsingKotlinToolingDiagnostics.Parameters {
 
         /**
          * The platform used for requests that do not specify one explicitly.
@@ -97,7 +99,7 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     }
 
     private fun provision(distribution: NodeJsDistribution): NodeJsExecutable {
-        logger.warnIfNodeJsUnsupported(distribution.version)
+        reportDiagnosticWhenNodeJsVersionUnsupported(distribution.version)
 
         val installationDir = installations.computeIfAbsent(distribution) {
             val downloadBaseUrl = parameters.downloadBaseUrl.getOrElse(OFFICIAL_NODE_JS_DOWNLOAD_BASE_URL)
