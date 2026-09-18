@@ -68,8 +68,9 @@ internal abstract class JavaKProperty<out V>(
         ): ReflectKCallable<ReturnType> =
             error("Property accessors can only be copied by copying the corresponding property")
 
-        override fun rebind(boundReceiver: Any?): ReflectKCallable<ReturnType> =
-            error("Property accessors can only be bound by copying the corresponding property")
+        override fun createBound(boundReceiver: Any?) = error("Property accessors can only be bound by copying the corresponding property")
+
+        override fun createUnbound() = error("Property accessors can only be unbound by copying the corresponding property")
 
         override val annotations: List<Annotation>
             get() = emptyList()
