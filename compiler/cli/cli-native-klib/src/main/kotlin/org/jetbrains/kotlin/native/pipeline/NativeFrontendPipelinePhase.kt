@@ -164,7 +164,7 @@ object NativeFrontendPipelinePhase : PipelinePhase<ConfigurationPipelineArtifact
         input: KotlinCoreEnvironment,
         configuration: CompilerConfiguration
     ): AllModulesFrontendOutput {
-        var output = if (configuration.getBoolean(CommonConfigurationKeys.USE_LIGHT_TREE)) {
+        var output = if (configuration[CommonConfigurationKeys.PARSER_MODE]?.treeBased == true) {
             firFrontendWithLightTree(input, configuration)
         } else {
             firFrontendWithPsi(input, configuration)

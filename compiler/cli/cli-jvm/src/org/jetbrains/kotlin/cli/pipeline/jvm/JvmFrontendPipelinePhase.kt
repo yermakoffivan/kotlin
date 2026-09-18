@@ -128,11 +128,11 @@ object JvmFrontendPipelinePhase : PipelinePhase<ConfigurationPipelineArtifact, J
 
         perfManager?.notifyPhaseStarted(PhaseType.Analysis)
         val sourceScope: AbstractProjectFileSearchScope
-        when (configuration.useLightTree) {
+        when (configuration.parserMode?.treeBased) {
             true -> {
                 sourceScope = AbstractProjectFileSearchScope.EMPTY
             }
-            false -> {
+            false, null -> {
                 val ktFiles = allSources.map { (it as KtPsiSourceFile).psiFile as KtFile }
                 sourceScope = environment.getSearchScopeByPsiFiles(ktFiles) + environment.getSearchScopeForProjectJavaSources()
                 if (checkIfScriptsInCommonSources(configuration, ktFiles)) {
@@ -174,7 +174,7 @@ object JvmFrontendPipelinePhase : PipelinePhase<ConfigurationPipelineArtifact, J
         val countFilesAndLines = if (perfManager == null) null else perfManager::addSourcesStats
         val diagnosticsCollector = configuration.diagnosticsCollector
         val outputs = sessionsWithSources.map { (val session, val sources = files) ->
-            val rawFirFiles = when (configuration.useLightTree) {
+            val rawFirFiles = when (configuration.parserMode?.treeBased) {
                 true -> session.buildFirViaLightTree(sources, diagnosticsCollector, useMultiplatformParsing = false, countFilesAndLines)
                 else -> session.buildFirFromKtFiles(sources.asKtFilesList())
             }
@@ -203,7 +203,7 @@ object JvmFrontendPipelinePhase : PipelinePhase<ConfigurationPipelineArtifact, J
         targetDescription: String,
     ): EnvironmentAndSources? {
         val diagnosticReporter = configuration.diagnosticsCollector
-        return when (configuration.useLightTree) {
+        return when (configuration.parserMode?.treeBased) {
             true -> {
                 val environment = createProjectEnvironment(
                     configuration,
@@ -213,7 +213,7 @@ object JvmFrontendPipelinePhase : PipelinePhase<ConfigurationPipelineArtifact, J
                 val sources = { collectSources(configuration, environment) }
                 EnvironmentAndSources(environment, sources)
             }
-            false -> {
+            false, null -> {
                 val kotlinCoreEnvironment = createCoreEnvironment(
                     rootDisposable, configuration, targetDescription
                 ) ?: return null
