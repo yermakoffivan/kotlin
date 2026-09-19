@@ -460,6 +460,7 @@ include(
     ":wasm:wasm.config",
     ":wasm:wasm.debug.browsers",
     ":repo:test-runtime",
+    ":repo:test-inventory-fixture",
     ":repo:codebase-tests",
     ":repo:auto-code-review",
     ":repo:artifacts-tests"
