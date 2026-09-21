@@ -49,13 +49,12 @@ class KaptSmokeTest : BaseCompilationTest() {
                     kotlinToolchain.jvm.kaptCompilerPluginBuilder(
                         kaptClasspath = kaptClasspath.plusElement(toolsJar.toPath()),
                         stubsOutputDir = module.outputDirectory.resolve("generated/stubs"),
-                        sourcesOutputDir = module.outputDirectory.resolve("generated/source"),
                         annotationProcessorsClasspath = exampleApClasspath
                     ).apply {
                         this[KaptConfiguration.VERBOSE] = true
                     }
                         .withStubsPhase()
-                        .withAptPhase().apply {
+                        .withAptPhase(sourcesOutputDir = module.outputDirectory.resolve("generated/source")).apply {
                             this[KaptConfiguration.AptPhase.DETECT_MEMORY_LEAKS] = KaptDetectMemoryLeaksMode.NONE
                         }.build()
                 it[JvmCompilationOperation.KAPT_CONFIGURATION] = kaptConfig
@@ -91,20 +90,20 @@ class KaptSmokeTest : BaseCompilationTest() {
         val kotlinToolchain = strategyConfig.first
         jvmScenario(strategyConfig) {
             val moduleBuildDir = project.projectDirectory.resolve("kapt-project/build/output")
-            val module = module("kapt-project",
+            val module = module(
+                "kapt-project",
                 compilationConfigAction = {
                     it.compilerArguments[CommonToolArguments.VERBOSE] = true
                     val kaptConfig =
                         kotlinToolchain.jvm.kaptCompilerPluginBuilder(
                             kaptClasspath = kaptClasspath.plusElement(toolsJar.toPath()),
                             stubsOutputDir = moduleBuildDir.resolve("generated/stubs"),
-                            sourcesOutputDir = moduleBuildDir.resolve("generated/source"),
                             annotationProcessorsClasspath = exampleApClasspath
                         ).apply {
                             this[KaptConfiguration.VERBOSE] = true
                         }
                             .withStubsPhase()
-                            .withAptPhase().apply {
+                            .withAptPhase(sourcesOutputDir = moduleBuildDir.resolve("generated/source")).apply {
                                 this[KaptConfiguration.AptPhase.DETECT_MEMORY_LEAKS] = KaptDetectMemoryLeaksMode.NONE
                             }.build()
                     it[JvmCompilationOperation.KAPT_CONFIGURATION] = kaptConfig
