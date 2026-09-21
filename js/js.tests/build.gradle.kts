@@ -14,8 +14,7 @@ plugins {
     kotlin("plugin.serialization")
     alias(libs.plugins.gradle.node)
     id("d8-configuration")
-    // TODO: uncomment this line after bootstrap
-    // id("swc-configuration")
+    id("swc-configuration")
     id("nodejs-configuration")
     id("java-test-fixtures")
     id("test-inputs-check")
@@ -66,6 +65,7 @@ dependencies {
     testFixturesApi(project(":compiler:incremental-compilation-impl"))
     testFixturesImplementation(project(":kotlin-util-klib-metadata"))
     testFixturesImplementation(project(":wasm:wasm.frontend"))
+    testFixturesImplementation(libs.gson)
     testFixturesApi(testFixtures(project(":kotlin-build-common")))
     testFixturesApi(testFixtures(project(":generators:test-generator")))
 

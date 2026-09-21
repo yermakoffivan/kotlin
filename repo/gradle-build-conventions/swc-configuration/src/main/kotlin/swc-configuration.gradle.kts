@@ -1,4 +1,7 @@
+@file:OptIn(InternalKotlinGradlePluginApi::class)
+
 import org.jetbrains.kotlin.build.swc.SwcExtension
+import org.jetbrains.kotlin.gradle.InternalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.swc.SwcEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.swc.SwcPlugin
 
