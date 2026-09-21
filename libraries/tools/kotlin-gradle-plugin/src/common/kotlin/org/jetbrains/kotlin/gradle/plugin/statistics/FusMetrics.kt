@@ -161,40 +161,6 @@ internal object CompilerArgumentMetrics : FusMetrics {
     }
 }
 
-internal object NativeArgumentMetrics : FusMetrics {
-
-    private fun getGcTypeMetrics(arguments: K2NativeCompilerArguments): BooleanMetrics? {
-        return arguments.binaryOptions
-            .firstOrNull { it.startsWith("gc=") }
-            ?.substring("gc=".length)
-            ?.let {
-                //Values are connected to [org.jetbrains.kotlin.backend.konan.GC], but the class can't be access from here
-                when (it) {
-                    "noop" -> BooleanMetrics.ENABLED_NOOP_GC
-                    "stwms" -> BooleanMetrics.ENABLED_STWMS_GC
-                    "pmcs" -> BooleanMetrics.ENABLED_PMCS_GC
-                    "cms" -> BooleanMetrics.ENABLED_CMS_GC
-                    else -> null
-                }
-            }
-    }
-
-    private fun getSwiftExportMetrics(arguments: K2NativeCompilerArguments): BooleanMetrics? {
-        return if (arguments.binaryOptions.contains("swiftExport=true")) {
-            BooleanMetrics.ENABLED_SWIFT_EXPORT
-        } else {
-            null
-        }
-    }
-
-    fun collectMetrics(compilerArguments: List<String>, metricsConsumer: StatisticsValuesConsumer) {
-        val arguments = K2NativeCompilerArguments()
-        parseCommandLineArguments(compilerArguments, arguments)
-        getGcTypeMetrics(arguments)?.let { metricsConsumer.report(it, true) }
-        getSwiftExportMetrics(arguments)?.let { metricsConsumer.report(it, true) }
-    }
-}
-
 internal object KotlinTaskExecutionMetrics : FusMetrics {
     fun collectMetrics(taskExecutionResult: TaskExecutionResult, event: TaskFinishEvent, metricsConsumer: StatisticsValuesConsumer) {
         val totalTimeMs = event.result.endTime - event.result.startTime
