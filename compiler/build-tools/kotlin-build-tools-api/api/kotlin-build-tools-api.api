@@ -1779,7 +1779,7 @@ public abstract interface class org/jetbrains/kotlin/buildtools/api/jvm/JvmPlatf
 	public abstract fun discoverScriptExtensionsOperationBuilder (Ljava/util/List;)Lorg/jetbrains/kotlin/buildtools/api/jvm/operations/DiscoverScriptExtensionsOperation$Builder;
 	public static fun from (Lorg/jetbrains/kotlin/buildtools/api/KotlinToolchains;)Lorg/jetbrains/kotlin/buildtools/api/jvm/JvmPlatformToolchain;
 	public abstract fun jvmCompilationOperationBuilder (Ljava/util/List;Ljava/nio/file/Path;)Lorg/jetbrains/kotlin/buildtools/api/jvm/operations/JvmCompilationOperation$Builder;
-	public abstract fun kaptCompilerPluginBuilder (Ljava/util/List;Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/util/List;)Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$Builder;
+	public abstract fun kaptCompilerPluginBuilder (Ljava/util/List;Ljava/nio/file/Path;Ljava/util/List;)Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$Builder;
 }
 
 public final class org/jetbrains/kotlin/buildtools/api/jvm/JvmPlatformToolchain$Companion {
@@ -1870,7 +1870,6 @@ public abstract interface class org/jetbrains/kotlin/buildtools/api/jvm/KaptConf
 	public abstract fun getAnnotationProcessorsClasspath ()Ljava/util/List;
 	public abstract fun getAptPhase ()Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase;
 	public abstract fun getKaptClasspath ()Ljava/util/List;
-	public abstract fun getSourcesOutputDir ()Ljava/nio/file/Path;
 	public abstract fun getStubsOutputDir ()Ljava/nio/file/Path;
 	public abstract fun getStubsPhase ()Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$StubsPhase;
 	public abstract fun toBuilder ()Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$Builder;
@@ -1882,7 +1881,6 @@ public abstract interface class org/jetbrains/kotlin/buildtools/api/jvm/KaptConf
 	public static final field APT_OPTIONS Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
 	public static final field CHANGED_FILES Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
 	public static final field CLASSPATH_CHANGES Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
-	public static final field CLASS_OUTPUT_DIR Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
 	public static final field COMPILED_SOURCES_DIR Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
 	public static final field CORRECT_ERROR_TYPES Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Option;
 	public static final field Companion Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Companion;
@@ -1915,10 +1913,9 @@ public abstract interface class org/jetbrains/kotlin/buildtools/api/jvm/KaptConf
 	public abstract fun get (Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$Option;)Ljava/lang/Object;
 	public abstract fun getAnnotationProcessorsClasspath ()Ljava/util/List;
 	public abstract fun getKaptClasspath ()Ljava/util/List;
-	public abstract fun getSourcesOutputDir ()Ljava/nio/file/Path;
 	public abstract fun getStubsOutputDir ()Ljava/nio/file/Path;
 	public abstract fun set (Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$Option;Ljava/lang/Object;)V
-	public abstract fun withAptPhase ()Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Builder;
+	public abstract fun withAptPhase (Ljava/nio/file/Path;)Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$AptPhase$Builder;
 	public abstract fun withStubsPhase ()Lorg/jetbrains/kotlin/buildtools/api/jvm/KaptConfiguration$StubsPhase$Builder;
 }
 
