@@ -134,25 +134,6 @@ interface NodeJsToolchainService<P : NodeJsToolchainService.Parameters> : BuildS
             val binDir = computeNodeBinDir(installationDir.toPath(), platform.isWindows).toFile()
             return binDir.resolve(if (platform.isWindows) "node.exe" else "node")
         }
-
-        internal fun Logger.warnIfRequestedNodeJsNotFound(installationDir: File, version: NodeJsVersion, platform: BuildPlatform) {
-            if (!installationDir.isDirectory) {
-                warn(
-                    "No Node.js distribution found in ${installationDir.absolutePath}"
-                )
-            } else if (!nodeJsExecutableFile(installationDir.resolve(nodeJsDistributionName(version, platform)), platform).isFile) {
-                warn(
-                    "No Node.js executable found in ${
-                        installationDir.resolve(
-                            nodeJsDistributionName(
-                                version,
-                                platform
-                            )
-                        ).absolutePath
-                    } for requested version $version and platform $platform"
-                )
-            }
-        }
     }
 }
 

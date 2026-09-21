@@ -51,8 +51,8 @@ internal class NodeJsDistributionInstaller(
         downloadBaseUrl: String,
         offline: Boolean,
     ): File {
-        val distributionName = nodeJsDistributionName(version, platform)
-        val distributionPath = installationsDir.resolve(distributionName)
+        val distributionId = nodeJsDistributionName(version, platform)
+        val distributionPath = installationsDir.resolve(distributionId)
 
         if (isCompleteInstallation(distributionPath, platform)) return distributionPath
 
@@ -67,28 +67,28 @@ internal class NodeJsDistributionInstaller(
 
         // The lock is taken beside the target directory, so that installations of different distributions
         // do not block each other.
-        val lockDir = installationsDir.resolve(".$distributionName.lock")
+        val lockDir = installationsDir.resolve(".$distributionId.lock")
         KotlinInterprocessDirectoryLock(lockDir, logInfo = { logger.info(it) }).withLock {
             // Another process may have completed the installation while the lock was being acquired.
             if (isCompleteInstallation(distributionPath, platform)) return@withLock
 
             if (distributionPath.exists()) {
-                logger.info("'$distributionPath' is not empty")
+                logger.info("'$distributionPath' is exist")
             }
             //TODO should we clean the directory at some point?
 
             val tempDir = File("${distributionPath.path}$TEMP_DIR_SUFFIX")
 
             try {
-                val archive = tempDir.resolve("$distributionName.${nodeJsArchiveExtension(platform)}")
+                val archive = tempDir.resolve("$distributionId.${nodeJsArchiveExtension(platform)}")
                 download(version, platform, downloadBaseUrl, archive)
 
                 archiveOperations.extractNodeJs(fs, archive, tempDir)
 
-                val unpacked = tempDir.resolve(distributionName)
+                val unpacked = tempDir.resolve(distributionId)
                 check(unpacked.isDirectory) {
                     "The Node.js distribution archive '${archive.name}' does not contain the expected " +
-                            "'$distributionName' directory"
+                            "'$distributionId' directory"
                 }
                 setUpNodeJs(logger, archive, unpacked, platform.isWindows, nodeJsExecutableFile(tempDir, platform))
 
