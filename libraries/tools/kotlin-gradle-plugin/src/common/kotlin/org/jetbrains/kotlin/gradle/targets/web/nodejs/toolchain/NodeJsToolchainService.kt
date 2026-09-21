@@ -61,13 +61,10 @@ interface NodeJsToolchainService<P : NodeJsToolchainService.Parameters> : BuildS
     interface Parameters : BuildServiceParameters
 
     /**
-     * Requests a Node.js distribution.
+     * Requests a Node.js distribution described by [nodeJsRequest].
      *
      * The returned provider is not evaluated eagerly - the distribution is only provisioned when the provider
      * value is queried, which for a task input happens after the configuration phase.
-     *
-     * @param configure configures the requested Node.js distribution.
-     * @return a provider of the provisioned Node.js installation.
      */
     fun request(nodeJsRequest: NodeJsRequest): Provider<NodeJsExecutable>
 

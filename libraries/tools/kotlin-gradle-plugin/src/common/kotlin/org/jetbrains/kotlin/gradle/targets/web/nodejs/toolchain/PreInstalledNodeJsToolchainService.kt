@@ -22,6 +22,9 @@ import org.jetbrains.kotlin.gradle.utils.newInstance
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
+/**
+ * A [NodeJsToolchainService] that uses a pre-installed Node.js instead of downloading one.
+ */
 abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
     private val objects: ObjectFactory,
     private val providers: ProviderFactory,
@@ -29,6 +32,9 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
 ) : NodeJsToolchainService<PreInstalledNodeJsToolchainService.Parameters> {
 
     abstract class Parameters : NodeJsToolchainService.Parameters {
+        /**
+         * The command used to run the pre-installed Node.js, for example `node` or a full path.
+         */
         abstract val nodeJsExecutable: Property<String>
     }
 
@@ -48,7 +54,7 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
                     "Node.js $installedVersion found by '$command' does not match the requested " +
                     "version $requestedVersion. The requested version cannot be provisioned, because " +
                     "the Node.js toolchain is configured to use a pre-installed Node.js. " +
-                    "Please update the pre-installed Node.js or configure the Kotlin Gradle Plugin to download Node.js by setting kotlin.js.node.toolchain=DOWNLOAD."
+                    "Please update the pre-installed Node.js or configure the Kotlin Gradle Plugin to download Node.js by setting kotlin.js.nodejs.toolchain=DOWNLOAD."
                 )
             }
             nodeJsRequest.platform.orNull?.let { platform ->

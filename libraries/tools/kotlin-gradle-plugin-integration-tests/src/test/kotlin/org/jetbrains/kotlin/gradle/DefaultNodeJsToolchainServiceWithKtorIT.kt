@@ -80,15 +80,17 @@ class DefaultNodeJsToolchainServiceWithKtorIT : KGPBaseTest() {
                     listOf(
                         archiveRequest(NODE_JS_VERSION, hostPlatform),
                         archiveRequest(additionalNodeJsVersion, hostPlatform),
-                    ),
-                    server.downloadRequests,
+                    ).sorted(),
+                    server.downloadRequests.sorted(),
                 )
                 assertEquals(
                     listOf(
                         hostPlatform.distributionName(NODE_JS_VERSION),
+                        hostPlatform.distributionName(NODE_JS_VERSION).lockFileDir(),
                         hostPlatform.distributionName(additionalNodeJsVersion),
+                        hostPlatform.distributionName(additionalNodeJsVersion).lockFileDir(),
                     ).sorted(),
-                    installationDir.installedDistributions().sorted(),
+                    installationDir.installedDistributions(),
                 )
             }
         }
@@ -119,7 +121,7 @@ class DefaultNodeJsToolchainServiceWithKtorIT : KGPBaseTest() {
                 .createDirectories()
             val leftover = incompleteInstallation.resolve("leftover.txt").also { it.writeText("existed node js should not be overwritten") }
 
-            nodeJsToolchainProject(gradleVersion, server, requestedVersions = listOf(NODE_JS_VERSION), installationsDir = tempDir) {
+            nodeJsToolchainProject(gradleVersion, server, requestedVersions = listOf(NODE_JS_VERSION), installationsDir = tempDir, buildAction = BuildActions.buildAndFail) {
                 assertEquals(listOf(archiveRequest(NODE_JS_VERSION, hostPlatform)), server.downloadRequests)
                 assertTrue { leftover.exists() }
             }
@@ -212,7 +214,7 @@ class DefaultNodeJsToolchainServiceWithKtorIT : KGPBaseTest() {
                 )
             }) { installationDir ->
                 assertEquals(
-                    listOf(hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION), hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION).temporaryDirectory()).sorted(),
+                    listOf(hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION), hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION).lockFileDir()).sorted(),
                     installationDir.installedDistributions().sorted(),
                 )
             }
@@ -488,7 +490,7 @@ private fun ZipOutputStream.addEntry(path: String, content: String) {
     closeEntry()
 }
 
-private fun String.temporaryDirectory() = ".${this}.lock"
+private fun String.lockFileDir() = ".${this}.lock"
 
 private const val NODE_JS_STUB = "#!/bin/sh\necho 'not a real Node.js'\n"
 private const val NPM_CLI_STUB = "// not a real npm\n"

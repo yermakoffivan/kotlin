@@ -5864,7 +5864,7 @@ public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/Buil
 
 public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DefaultNodeJsToolchainService : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService {
 	public static final field Companion Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DefaultNodeJsToolchainService$Companion;
-	public fun request (Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/provider/Provider;
+	public fun request (Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsRequest;)Lorg/gradle/api/provider/Provider;
 }
 
 public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DefaultNodeJsToolchainService$Companion {
@@ -5872,7 +5872,6 @@ public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/Defa
 
 public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DefaultNodeJsToolchainService$Parameters : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Parameters {
 	public fun <init> ()V
-	public abstract fun getDefaultPlatform ()Lorg/gradle/api/provider/Property;
 	public abstract fun getDownloadBaseUrl ()Lorg/gradle/api/provider/Property;
 	public abstract fun getInstallationDir ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getOffline ()Lorg/gradle/api/provider/Property;
@@ -5881,7 +5880,7 @@ public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/D
 public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DisabledNodeJsToolchainService : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService {
 	public static final field Companion Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DisabledNodeJsToolchainService$Companion;
 	public fun <init> ()V
-	public fun request (Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/provider/Provider;
+	public fun request (Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsRequest;)Lorg/gradle/api/provider/Provider;
 }
 
 public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/DisabledNodeJsToolchainService$Companion {
@@ -5893,19 +5892,6 @@ public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/N
 	public abstract fun getVersion ()Lorg/gradle/api/provider/Property;
 }
 
-public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsFromSystemPathToolchainService : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService {
-	public static final field Companion Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsFromSystemPathToolchainService$Companion;
-	public fun request (Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/provider/Provider;
-}
-
-public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsFromSystemPathToolchainService$Companion {
-}
-
-public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsFromSystemPathToolchainService$Parameters : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Parameters {
-	public fun <init> ()V
-	public abstract fun getCommand ()Lorg/gradle/api/provider/Property;
-}
-
 public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsRequest {
 	public abstract fun getPlatform ()Lorg/gradle/api/provider/Property;
 	public abstract fun getVersion ()Lorg/gradle/api/provider/Property;
@@ -5914,14 +5900,10 @@ public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/N
 
 public abstract interface class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService : org/gradle/api/services/BuildService {
 	public static final field Companion Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Companion;
-	public abstract fun request (Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/provider/Provider;
+	public abstract fun request (Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsRequest;)Lorg/gradle/api/provider/Provider;
 }
 
 public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Companion {
-}
-
-public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$DefaultImpls {
-	public static synthetic fun request$default (Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lorg/gradle/api/provider/Provider;
 }
 
 public abstract interface class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Parameters : org/gradle/api/services/BuildServiceParameters {
@@ -5936,6 +5918,19 @@ public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/Node
 	public final fun getVersion ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/PreInstalledNodeJsToolchainService : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService {
+	public static final field Companion Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/PreInstalledNodeJsToolchainService$Companion;
+	public fun request (Lorg/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsRequest;)Lorg/gradle/api/provider/Provider;
+}
+
+public final class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/PreInstalledNodeJsToolchainService$Companion {
+}
+
+public abstract class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/PreInstalledNodeJsToolchainService$Parameters : org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/NodeJsToolchainService$Parameters {
+	public fun <init> ()V
+	public abstract fun getNodeJsExecutable ()Lorg/gradle/api/provider/Property;
 }
 
 public abstract interface class org/jetbrains/kotlin/gradle/targets/web/nodejs/toolchain/UsesNodeJsToolchainService : org/gradle/api/Task {

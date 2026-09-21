@@ -41,7 +41,6 @@ internal class NodeJsDistributionInstaller(
      *
      * @param installationsDir the directory containing all Node.js installations.
      * @param downloadBaseUrl the base URL of the Node.js distributions.
-     * @param verifyDownload whether the downloaded archive must be verified against the published checksums.
      * @param offline whether downloading is forbidden.
      */
     fun install(
@@ -90,13 +89,13 @@ internal class NodeJsDistributionInstaller(
                     "The Node.js distribution archive '${archive.name}' does not contain the expected " +
                             "'$distributionId' directory"
                 }
-                setUpNodeJs(logger, archive, unpacked, platform.isWindows, nodeJsExecutableFile(tempDir, platform))
+                setUpNodeJs(logger, archive, unpacked, platform.isWindows, nodeJsExecutableFile(unpacked, platform))
 
                 installationsDir.mkdirs()
                 try {
                     Files.move(unpacked.toPath(), distributionPath.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-                } catch (_: DirectoryNotEmptyException) {
-                    throw IllegalStateException("The Node.js distribution directory '$distributionPath' is not empty, can't overwrite it")
+                } catch (e: Exception) {
+                    throw IllegalStateException("The Node.js can nott be installed in the '$distributionPath' directory", e)
                 }
             } finally {
                 tempDir.deleteRecursively()

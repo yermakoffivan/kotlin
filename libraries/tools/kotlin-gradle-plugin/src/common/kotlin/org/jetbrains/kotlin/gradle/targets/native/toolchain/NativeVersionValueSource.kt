@@ -11,8 +11,6 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinInterprocessDirectoryLock
 import org.jetbrains.kotlin.gradle.targets.native.internal.unzipTo
-import org.jetbrains.kotlin.konan.util.ArchiveType
-import org.jetbrains.kotlin.konan.util.DependencyExtractor
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.slf4j.LoggerFactory
 import java.io.File

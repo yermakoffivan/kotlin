@@ -29,12 +29,8 @@ import javax.inject.Inject
 /**
  * The default [NodeJsToolchainService] used by the Kotlin Gradle Plugin.
  *
- * It downloads the requested Node.js distribution and installs it into a shared, machine-wide directory,
+ * Downloads the requested Node.js distribution and installs it into a shared, machine-wide directory,
  * so that a distribution is downloaded once and then reused by all builds on the machine.
- *
- * Downloads from the official Node.js distribution are verified against the officially published
- * SHA-256 checksums. When a custom [Parameters.downloadBaseUrl] is configured, the source is trusted
- * as configured and the download is not verified.
  */
 abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     private val objects: ObjectFactory,
