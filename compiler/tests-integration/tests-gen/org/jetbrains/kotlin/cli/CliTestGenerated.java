@@ -1887,12 +1887,6 @@ public class CliTestGenerated extends AbstractCliTest {
     }
 
     @Test
-    @TestMetadata("jvmValueClassCodegenIllegalConfiguration.args")
-    public void testJvmValueClassCodegenIllegalConfiguration() {
-      run("jvmValueClassCodegenIllegalConfiguration.args");
-    }
-
-    @Test
     @TestMetadata("k2SimpleMultiplatformGenericClass.args")
     public void testK2SimpleMultiplatformGenericClass() {
       run("k2SimpleMultiplatformGenericClass.args");
@@ -2154,6 +2148,12 @@ public class CliTestGenerated extends AbstractCliTest {
     @TestMetadata("unrestrictedBuilderInference.args")
     public void testUnrestrictedBuilderInference() {
       run("unrestrictedBuilderInference.args");
+    }
+
+    @Test
+    @TestMetadata("valhallaValueClassesIllegalConfiguration.args")
+    public void testValhallaValueClassesIllegalConfiguration() {
+      run("valhallaValueClassesIllegalConfiguration.args");
     }
 
     @Test

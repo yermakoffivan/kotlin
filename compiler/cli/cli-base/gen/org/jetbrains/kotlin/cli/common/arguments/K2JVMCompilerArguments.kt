@@ -329,17 +329,6 @@ This works like '--enable-preview' in Java. All class files are marked as compil
         }
 
     @Argument(
-        value = "-Xjvm-value-class-codegen",
-        valueDescription = "{regular|efficient}",
-        description = "Select how value classes are compiled. Use 'regular' for a JDK that is not Valhalla-compatible (the default); 'efficient' compiles value classes to behave as experimental Project Valhalla value classes and requires a Valhalla-compatible JDK.",
-    )
-    var jvmValueClassCodegen: String? = null
-        set(value) {
-            checkFrozen()
-            field = if (value.isNullOrEmpty()) null else value
-        }
-
-    @Argument(
         value = "-Xlambdas",
         valueDescription = "{class|indy}",
         description = """Select the code generation scheme for lambdas.
@@ -629,6 +618,16 @@ This can be used in the event of problems with the new implementation.""",
         description = "Use a type table in metadata serialization.",
     )
     var useTypeTable: Boolean = false
+        set(value) {
+            checkFrozen()
+            field = value
+        }
+
+    @Argument(
+        value = "-Xvalhalla-value-classes",
+        description = "Compile value classes to behave as experimental Project Valhalla value classes. Requires a Valhalla-compatible JDK, JVM target 27 or later and the '-Xjvm-enable-preview' flag.",
+    )
+    var valhallaValueClasses: Boolean = false
         set(value) {
             checkFrozen()
             field = value

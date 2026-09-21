@@ -229,15 +229,11 @@ to force diagnostics to be reported.""".asReleaseDependent()
         )
     }
 
-    @OptIn(ExperimentalArgumentApi::class)
     compilerArgument {
-        name = "Xjvm-value-class-codegen"
-        description = ("Select how value classes are compiled. Use 'regular' for a JDK that is not Valhalla-compatible (the " +
-                "default); 'efficient' compiles value classes to behave as experimental Project Valhalla value classes and " +
-                "requires a Valhalla-compatible JDK.").asReleaseDependent()
-        valueType = StringType.defaultNull
-        valueDescription = "{regular|efficient}".asReleaseDependent()
-        argumentType = JvmValueClassCodegenModeType()
+        name = "Xvalhalla-value-classes"
+        description = ("Compile value classes to behave as experimental Project Valhalla value classes. Requires a " +
+                "Valhalla-compatible JDK, JVM target 27 or later and the '-Xjvm-enable-preview' flag.").asReleaseDependent()
+        valueType = BooleanType.defaultFalse
 
         lifecycle(
             introducedVersion = KotlinReleaseVersion.v2_5_0,
