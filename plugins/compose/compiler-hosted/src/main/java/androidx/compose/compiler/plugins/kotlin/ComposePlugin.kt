@@ -61,6 +61,11 @@ object ComposeConfiguration {
     )
     val DECOYS_ENABLED_KEY =
         CompilerConfigurationKey<Boolean>("Generate decoy methods in IR transform")
+    // TODO(b/485865131): This key must be deleted once `com.android.tools.compose.aa` no longer
+    //  relies on it.
+    @Suppress("unused")
+    val STRONG_SKIPPING_ENABLED_KEY =
+        CompilerConfigurationKey<Boolean>("Enable strong skipping mode")
     val STABILITY_CONFIG_PATH_KEY =
         CompilerConfigurationKey<List<String>>(
             "Path to stability configuration file"
