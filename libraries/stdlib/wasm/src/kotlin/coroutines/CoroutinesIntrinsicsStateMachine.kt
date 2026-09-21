@@ -12,6 +12,50 @@ import kotlin.coroutines.CoroutineImpl
 import kotlin.internal.UsedFromCompilerGeneratedCode
 import kotlin.wasm.internal.WasmCoroutineMode
 
+@Suppress("UNCHECKED_CAST")
+@PublishedApi
+@UsedFromCompilerGeneratedCode
+internal fun <T> (suspend () -> T).startCoroutineUninterceptedOrReturnImpl(
+    completion: Continuation<T>
+): Any? =
+    (this as Function1<Continuation<T>, Any?>)(wrapCompletion(completion))
+
+@Suppress("UNCHECKED_CAST")
+@PublishedApi
+@UsedFromCompilerGeneratedCode
+internal fun <R, T> (suspend R.() -> T).startCoroutineUninterceptedOrReturnImpl(
+    receiver: R,
+    completion: Continuation<T>
+): Any? =
+    (this as Function2<R, Continuation<T>, Any?>)(receiver, wrapCompletion(completion))
+
+@Suppress("UNCHECKED_CAST")
+@UsedFromCompilerGeneratedCode
+internal fun <R, P, T> (suspend R.(P) -> T).startCoroutineUninterceptedOrReturnImpl(
+    receiver: R,
+    param: P,
+    completion: Continuation<T>
+): Any? =
+    (this as Function3<R, P, Continuation<T>, Any?>)(receiver, param, wrapCompletion(completion))
+
+// If the suspend function is not a CoroutineImpl, wrap the completion into one.
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun <T> Any?.wrapCompletion(completion: Continuation<T>): Continuation<T> =
+    if (this is CoroutineImpl) completion
+    else createSimpleCoroutine(completion)
+
+// Is not used by Stack Switching implementation
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+@UsedFromCompilerGeneratedCode
+internal inline fun <T> createSimpleCoroutine(
+    completion: Continuation<T>
+): CoroutineImpl = object : CoroutineImpl(completion as Continuation<Any?>) {
+    override fun doResume(): Any? {
+        if (exception != null) throw exception as Throwable
+        return result
+    }
+}
+
 // Is replaced by Stack Switching intrinsic when -Xwasm-use-stack-switching-proposal passed
 @UsedFromCompilerGeneratedCode
 internal fun <T> createCoroutineUninterceptedIntrinsic0(
@@ -44,16 +88,3 @@ private inline fun <T> createCoroutineFromSuspendFunction(
         }
     }
 }
-
-// Is not used by Stack Switching implementation
-@Suppress("UNCHECKED_CAST")
-@UsedFromCompilerGeneratedCode
-internal fun <T> createSimpleCoroutineFromSuspendFunction(
-    completion: Continuation<T>
-): CoroutineImpl = object : CoroutineImpl(completion as Continuation<Any?>) {
-    override fun doResume(): Any? {
-        if (exception != null) throw exception as Throwable
-        return result
-    }
-}
-
