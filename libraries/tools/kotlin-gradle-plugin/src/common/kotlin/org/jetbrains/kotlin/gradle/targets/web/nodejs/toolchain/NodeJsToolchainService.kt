@@ -22,6 +22,8 @@ import org.jetbrains.kotlin.gradle.plugin.diagnostics.reportDiagnosticOncePerPro
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.computeNodeBinDir
 import org.jetbrains.kotlin.gradle.tasks.withType
 import org.jetbrains.kotlin.gradle.utils.SingleActionPerProject
+import org.jetbrains.kotlin.gradle.utils.newInstance
+import org.jetbrains.kotlin.gradle.utils.property
 import java.io.File
 import java.io.Serializable
 import javax.inject.Inject
@@ -140,7 +142,14 @@ interface NodeJsToolchainService<P : NodeJsToolchainService.Parameters> : BuildS
                 )
             } else if (!nodeJsExecutableFile(installationDir.resolve(nodeJsDistributionName(version, platform)), platform).isFile) {
                 warn(
-                    "No Node.js executable found in ${installationDir.resolve(nodeJsDistributionName(version, platform)).absolutePath} for requested version $version and platform $platform"
+                    "No Node.js executable found in ${
+                        installationDir.resolve(
+                            nodeJsDistributionName(
+                                version,
+                                platform
+                            )
+                        ).absolutePath
+                    } for requested version $version and platform $platform"
                 )
             }
         }
@@ -191,6 +200,12 @@ abstract class NodeJsRequest @Inject internal constructor() {
         this.version.set(NodeJsVersion(version))
     }
 }
+
+private val DEFAULT_NODE_JS_VERSION = "24.16.0"
+internal fun Project.requestDefaultNodeJs() = objects.property(objects.newInstance<NodeJsRequest>().also {
+    it.version.convention(NodeJsVersion(DEFAULT_NODE_JS_VERSION))
+    it.platform.convention(providers.detectBuildPlatform())
+})
 
 /**
  * A provisioned Node.js installation.

@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinInterprocessDir
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.nodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.*
 import org.jetbrains.kotlin.gradle.utils.getFile
-import org.jetbrains.kotlin.gradle.utils.newInstance
 import org.jetbrains.kotlin.gradle.utils.property
 import org.jetbrains.kotlin.konan.target.HostManager
 import java.io.File
@@ -53,11 +52,7 @@ internal abstract class PlaywrightBrowserInstall @Inject constructor(
     }
 
     @get:Internal
-    internal val nodeJsRequest: Provider<NodeJsRequest> = objects.property(objects.newInstance<NodeJsRequest>().also {
-        it.version.convention(compilation.nodeJsEnvSpec.version.map { NodeJsVersion(it) })
-        it.platform.convention(compilation.nodeJsEnvSpec.platform.map { BuildPlatform(it.name, it.arch) })
-    })
-
+    internal val nodeJsRequest: Provider<NodeJsRequest> = compilation.project.requestDefaultNodeJs()
 
     @get:Input
     internal val browsers = objects.setProperty(String::class.java).convention(emptyList())

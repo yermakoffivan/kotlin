@@ -46,13 +46,6 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     abstract class Parameters : NodeJsToolchainService.Parameters, BuildServiceUsingKotlinToolingDiagnostics.Parameters {
 
         /**
-         * The platform used for requests that do not specify one explicitly.
-         *
-         * Defaults to the platform of the machine running the build.
-         */
-        abstract val defaultPlatform: Property<BuildPlatform>
-
-        /**
          * The directory containing all Node.js installations.
          *
          * Defaults to `$KOTLIN_CACHE_DIR/toolchains/nodejs`.
@@ -92,7 +85,7 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
         return providers.provider {
             val distribution = NodeJsDistribution(
                 version = nodeJsRequest.version.orNull ?: error("A Node.js version must be requested"),
-                platform = nodeJsRequest.platform.orElse(parameters.defaultPlatform).orNull ?: error("A Node.js platform must be requested")
+                platform = nodeJsRequest.platform.orNull ?: error("A Node.js platform must be requested")
             )
             provision(distribution)
         }
@@ -123,7 +116,6 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
         internal fun registerIfAbsent(project: Project): Provider<DefaultNodeJsToolchainService> {
 
             return project.gradle.sharedServices.registerIfAbsent(nodeJsServiceName, DefaultNodeJsToolchainService::class.java) { spec ->
-                spec.parameters.defaultPlatform.set(project.providers.detectBuildPlatform())
                 spec.parameters.installationDir.fileProvider(project.nodeJsToolchainInstallationDir)
                 spec.parameters.downloadBaseUrl.set(
                     project.kotlinPropertiesProvider.nodeJsToolchainDefaultDownloadUrl.orElse(
