@@ -13,15 +13,21 @@ import kotlin.reflect.KMutableProperty
 internal open class KotlinKPropertyN<out V>(
     container: KDeclarationContainerImpl, signature: String, rawBoundReceiver: Any?, kmProperty: KmProperty,
     overriddenStorage: KCallableOverriddenStorage,
-) : KotlinKProperty<V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage) {
+) : KotlinKProperty<V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage, rawBoundContextArguments = null) {
     override val getter: Getter<V> by lazy(PUBLICATION) { Getter(this) }
 
     override fun shallowCopy(container: KDeclarationContainerImpl, overriddenStorage: KCallableOverriddenStorage): ReflectKCallable<V> =
         KotlinKPropertyN(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
 
-    override fun createBound(boundReceiver: Any?) = throw KotlinReflectionInternalError("Cannot bind KPropertyN: $this")
 
-    override fun createUnbound() = throw KotlinReflectionInternalError("Cannot unbind KPropertyN: $this")
+    override fun createBound(boundReceiver: Any?, boundContextArguments: List<Any?>?): ReflectKProperty<V> {
+        if (boundContextArguments.isNullOrEmpty()) error("Cannot bind receiver without binding context arguments: $this")
+        return when (val receiverCount = countUnboundReceivers(boundReceiver)) {
+            0 -> KotlinKProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage, boundContextArguments)
+            1 -> KotlinKProperty1<Any?, V>(container, signature, boundReceiver, kmProperty, overriddenStorage, boundContextArguments)
+            else -> throw KotlinReflectionInternalError("Cannot bind context arguments to a property with $receiverCount receivers: $this")
+        }
+    }
 
     class Getter<out V>(override val property: KotlinKPropertyN<V>) : KotlinKProperty.Getter<V>()
 }
@@ -34,6 +40,15 @@ internal class KotlinKMutablePropertyN<V>(
 
     override fun shallowCopy(container: KDeclarationContainerImpl, overriddenStorage: KCallableOverriddenStorage): ReflectKCallable<V> =
         KotlinKMutablePropertyN(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+
+    override fun createBound(boundReceiver: Any?, boundContextArguments: List<Any?>?): ReflectKProperty<V> {
+        if (boundContextArguments.isNullOrEmpty()) error("Cannot bind receiver without binding context arguments: $this")
+        return when (val receiverCount = countUnboundReceivers(boundReceiver)) {
+            0 -> KotlinKMutableProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage, boundContextArguments)
+            1 -> KotlinKMutableProperty1<Any?, V>(container, signature, boundReceiver, kmProperty, overriddenStorage, boundContextArguments)
+            else -> throw KotlinReflectionInternalError("Cannot bind context arguments to a property with $receiverCount receivers: $this")
+        }
+    }
 
     class Setter<V>(override val property: KotlinKMutablePropertyN<V>) : KotlinKProperty.Setter<V>()
 }

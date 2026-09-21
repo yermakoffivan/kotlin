@@ -13,8 +13,8 @@ import kotlin.reflect.KProperty1
 
 internal open class KotlinKProperty1<T, out V>(
     container: KDeclarationContainerImpl, signature: String, rawBoundReceiver: Any?, kmProperty: KmProperty,
-    overriddenStorage: KCallableOverriddenStorage,
-) : KotlinKProperty<V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage), KProperty1<T, V> {
+    overriddenStorage: KCallableOverriddenStorage, rawBoundContextArguments: List<Any?>?,
+) : KotlinKProperty<V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage, rawBoundContextArguments), KProperty1<T, V> {
     override val getter: Getter<T, V> by lazy(PUBLICATION) { Getter(this) }
 
     override fun get(receiver: T): V = getter.call(receiver)
@@ -26,13 +26,18 @@ internal open class KotlinKProperty1<T, out V>(
     override fun invoke(receiver: T): V = get(receiver)
 
     override fun shallowCopy(container: KDeclarationContainerImpl, overriddenStorage: KCallableOverriddenStorage): ReflectKCallable<V> =
-        KotlinKProperty1<T, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        KotlinKProperty1<T, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage, rawBoundContextArguments = null)
 
-    override fun createBound(boundReceiver: Any?): ReflectKCallable<V> =
-        KotlinKProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage)
+    override fun createBound(boundReceiver: Any?, boundContextArguments: List<Any?>?): ReflectKCallable<V> {
+        require(boundContextArguments.isNullOrEmpty()) { "Unbound contextual property must be a KotlinKPropertyN: $this" }
+        return KotlinKProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage, rawBoundContextArguments = null)
+    }
 
     override fun createUnbound(): ReflectKCallable<V> =
-        KotlinKProperty2<Any?, Any?, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        if (hasContextParameters)
+            KotlinKPropertyN(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        else
+            KotlinKProperty2<Any?, Any?, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
 
     class Getter<T, out V>(override val property: KotlinKProperty1<T, V>) : KotlinKProperty.Getter<V>(), KProperty1.Getter<T, V> {
         override fun invoke(receiver: T): V = property.get(receiver)
@@ -41,20 +46,25 @@ internal open class KotlinKProperty1<T, out V>(
 
 internal class KotlinKMutableProperty1<T, V>(
     container: KDeclarationContainerImpl, signature: String, rawBoundReceiver: Any?, kmProperty: KmProperty,
-    overriddenStorage: KCallableOverriddenStorage,
-) : KotlinKProperty1<T, V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage), KMutableProperty1<T, V> {
+    overriddenStorage: KCallableOverriddenStorage, rawBoundContextArguments: List<Any?>?,
+) : KotlinKProperty1<T, V>(container, signature, rawBoundReceiver, kmProperty, overriddenStorage, rawBoundContextArguments), KMutableProperty1<T, V> {
     override val setter: Setter<T, V> by lazy(PUBLICATION) { Setter(this) }
 
     override fun set(receiver: T, value: V): Unit = setter.call(receiver, value)
 
     override fun shallowCopy(container: KDeclarationContainerImpl, overriddenStorage: KCallableOverriddenStorage): ReflectKCallable<V> =
-        KotlinKMutableProperty1<T, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        KotlinKMutableProperty1<T, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage, rawBoundContextArguments = null)
 
-    override fun createBound(boundReceiver: Any?): ReflectKCallable<V> =
-        KotlinKMutableProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage)
+    override fun createBound(boundReceiver: Any?, boundContextArguments: List<Any?>?): ReflectKCallable<V> {
+        require(boundContextArguments.isNullOrEmpty()) { "Unbound contextual property must be a KotlinKPropertyN: $this" }
+        return KotlinKMutableProperty0(container, signature, boundReceiver, kmProperty, overriddenStorage, rawBoundContextArguments = null)
+    }
 
     override fun createUnbound(): ReflectKCallable<V> =
-        KotlinKMutableProperty2<Any?, Any?, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        if (hasContextParameters)
+            KotlinKMutablePropertyN(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
+        else
+            KotlinKMutableProperty2<Any?, Any?, V>(container, signature, CallableReference.NO_RECEIVER, kmProperty, overriddenStorage)
 
     class Setter<T, V>(override val property: KotlinKMutableProperty1<T, V>) : KotlinKProperty.Setter<V>(), KMutableProperty1.Setter<T, V> {
         override fun invoke(receiver: T, value: V): Unit = property.set(receiver, value)

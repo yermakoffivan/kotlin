@@ -144,18 +144,22 @@ internal class JavaKNamedFunction(
     }
 
     private fun createInstanceMethodCaller(member: Method): Caller<*> =
-        CallerImpl.Method.Instance(member, boundReceiver)
+        CallerImpl.Method.Instance(member, boundReceiver, boundContextArguments = emptyList())
 
     private fun createStaticMethodCaller(member: Method): Caller<*> =
-        CallerImpl.Method.Static(member, isCallByToValueClassMangledMethod = false, boundReceiver)
+        CallerImpl.Method.Static(
+            member, isCallByToValueClassMangledMethod = false, boundReceiver,
+            boundContextArguments = emptyList(), hasInstanceParameter = false,
+        )
 
     override val callerWithDefaults: Caller<*>? get() = null
 
     override fun shallowCopy(container: KDeclarationContainerImpl, overriddenStorage: KCallableOverriddenStorage): ReflectKCallable<Any?> =
         JavaKNamedFunction(container, jMethod, CallableReference.NO_RECEIVER, overriddenStorage)
 
-    override fun createBound(boundReceiver: Any?) = JavaKNamedFunction(container, jMethod, boundReceiver, overriddenStorage)
+    override fun createBound(boundReceiver: Any?, boundContextArguments: List<Any?>?): ReflectKCallable<Any?> {
+        require(boundContextArguments.isNullOrEmpty()) { "Java methods cannot have bound context arguments: $this" }
+        return JavaKNamedFunction(container, jMethod, boundReceiver, overriddenStorage)
+    }
 
-    override fun createUnbound(): ReflectKCallable<Any?> =
-        JavaKNamedFunction(container, jMethod, CallableReference.NO_RECEIVER, overriddenStorage)
 }
