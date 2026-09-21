@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.wasm.test.AbstractWasmPartialLinkageTestCase
 import org.jetbrains.kotlin.wasm.test.WasmCompilerInvocationTestConfiguration
 import org.jetbrains.kotlin.wasm.test.WasmIcTest
 import org.jetbrains.kotlin.wasm.test.tools.WasmVM
+import org.jetbrains.kotlin.wasm.config.wasmUseStackSwitchingProposal
 import java.io.File
 
 @Suppress("OPT_IN_USAGE")
@@ -384,11 +385,13 @@ abstract class WasmAbstractInvalidationTest(
                 )
             }
 
-            WasmVM.NodeJs.run(
+            // V8 is required to run stack switching tests
+            WasmVM.V8.run(
                 "./test.mjs",
                 emptyList(),
                 workingDirectory = buildDir,
                 useNewExceptionHandling = false,
+                useStackSwitching = configuration.wasmUseStackSwitchingProposal,
             )
         }
     }
