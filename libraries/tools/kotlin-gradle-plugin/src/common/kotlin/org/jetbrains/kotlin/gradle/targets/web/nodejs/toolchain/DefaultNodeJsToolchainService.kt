@@ -16,6 +16,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.diagnostics.BuildServiceUsingKotlinToolingDiagnostics
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.setupKotlinToolingDiagnosticsParameters
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.nodeJsExecutableFile
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.nodeJsServiceName
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.toolchain.NodeJsToolchainService.Companion.reportDiagnosticWhenNodeJsVersionUnsupported
@@ -40,10 +41,9 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     private val providers: ProviderFactory,
     fs: FileSystemOperations,
     archiveOperations: ArchiveOperations,
-) : NodeJsToolchainService<DefaultNodeJsToolchainService.Parameters>,
-    BuildServiceUsingKotlinToolingDiagnostics<DefaultNodeJsToolchainService.Parameters> {
+) : NodeJsToolchainService<DefaultNodeJsToolchainService.Parameters> {
 
-    abstract class Parameters : NodeJsToolchainService.Parameters, BuildServiceUsingKotlinToolingDiagnostics.Parameters {
+    abstract class Parameters : NodeJsToolchainService.Parameters {
 
         /**
          * The directory containing all Node.js installations.
@@ -92,7 +92,7 @@ abstract class DefaultNodeJsToolchainService @Inject internal constructor(
     }
 
     private fun provision(distribution: NodeJsDistribution): NodeJsExecutable {
-        reportDiagnosticWhenNodeJsVersionUnsupported(distribution.version)
+        logger.reportDiagnosticWhenNodeJsVersionUnsupported(distribution.version)
 
         val installationDir = installations.computeIfAbsent(distribution) {
             val downloadBaseUrl = parameters.downloadBaseUrl.getOrElse(OFFICIAL_NODE_JS_DOWNLOAD_BASE_URL)

@@ -212,8 +212,8 @@ class DefaultNodeJsToolchainServiceWithKtorIT : KGPBaseTest() {
                 )
             }) { installationDir ->
                 assertEquals(
-                    listOf(hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION)),
-                    installationDir.installedDistributions(),
+                    listOf(hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION), hostPlatform.distributionName(UNSUPPORTED_NODE_JS_VERSION).temporaryDirectory()).sorted(),
+                    installationDir.installedDistributions().sorted(),
                 )
             }
         }
@@ -487,6 +487,8 @@ private fun ZipOutputStream.addEntry(path: String, content: String) {
     write(content.toByteArray())
     closeEntry()
 }
+
+private fun String.temporaryDirectory() = ".${this}.lock"
 
 private const val NODE_JS_STUB = "#!/bin/sh\necho 'not a real Node.js'\n"
 private const val NPM_CLI_STUB = "// not a real npm\n"

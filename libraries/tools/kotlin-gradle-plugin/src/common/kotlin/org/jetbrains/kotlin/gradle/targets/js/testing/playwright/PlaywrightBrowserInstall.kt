@@ -51,7 +51,7 @@ internal abstract class PlaywrightBrowserInstall @Inject constructor(
         } else objects.property()
     }
 
-    @get:Internal
+    @get:Input
     internal val nodeJsRequest: Provider<NodeJsRequest> = compilation.project.requestDefaultNodeJs()
 
     @get:Input

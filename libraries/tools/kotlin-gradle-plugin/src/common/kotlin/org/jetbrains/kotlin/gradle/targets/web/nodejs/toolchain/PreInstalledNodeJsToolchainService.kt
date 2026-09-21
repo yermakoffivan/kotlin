@@ -26,11 +26,9 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
     private val objects: ObjectFactory,
     private val providers: ProviderFactory,
     private val execOperations: ExecOperations,
-) : NodeJsToolchainService<PreInstalledNodeJsToolchainService.Parameters>,
-    BuildServiceUsingKotlinToolingDiagnostics<PreInstalledNodeJsToolchainService.Parameters> {
+) : NodeJsToolchainService<PreInstalledNodeJsToolchainService.Parameters> {
 
-    abstract class Parameters : NodeJsToolchainService.Parameters,
-        BuildServiceUsingKotlinToolingDiagnostics.Parameters {
+    abstract class Parameters : NodeJsToolchainService.Parameters {
         abstract val nodeJsExecutable: Property<String>
     }
 
@@ -42,16 +40,15 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
             val command = parameters.nodeJsExecutable.get()
             val (installedVersion, installedPlatform) = detectInstalledNodeJs(command)
 
-            reportDiagnosticWhenNodeJsVersionUnsupported(installedVersion)
+            logger.reportDiagnosticWhenNodeJsVersionUnsupported(installedVersion)
 
             val requestedVersion = nodeJsRequest.version.orNull
             if (requestedVersion != null && requestedVersion.normalized != installedVersion.normalized) {
-                reportDiagnostic(
-                    KotlinToolingDiagnostics.PreInstalledNodeJsVersionMismatch(
-                        installedVersion = installedVersion,
-                        requestedVersion = requestedVersion,
-                        command = command,
-                    )
+                logger.warn(
+                    "Node.js $installedVersion found by '$command' does not match the requested " +
+                    "version $requestedVersion. The requested version cannot be provisioned, because " +
+                    "the Node.js toolchain is configured to use a pre-installed Node.js. " +
+                    "Please update the pre-installed Node.js or configure the Kotlin Gradle Plugin to download Node.js by setting kotlin.js.node.toolchain=DOWNLOAD."
                 )
             }
             nodeJsRequest.platform.orNull?.let { platform ->
@@ -107,7 +104,6 @@ abstract class PreInstalledNodeJsToolchainService @Inject internal constructor(
                 nodeJsServiceName,
                 PreInstalledNodeJsToolchainService::class.java
             ) { spec ->
-                spec.parameters.setupKotlinToolingDiagnosticsParameters(project)
                 spec.parameters.nodeJsExecutable.set(project.kotlinPropertiesProvider.nodeJsToolchainLocalPath.getOrElse("node"))
             }
         }
