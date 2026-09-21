@@ -1086,7 +1086,7 @@ class BodyGenerator(
 
     private fun referenceContSuspendHandlerBlockType(): WasmImmediate.TypeIdx {
         val anyRefNull = WasmRefNullType(Synthetics.HeapTypes.anyBuiltInType)
-        val cont0RefNull = WasmRefNullType(typeCodegenContext.referenceBoundedContHeapType())
+        val cont0RefNull = WasmRefNullType(typeCodegenContext.referenceBoundContHeapType())
         return typeCodegenContext.referenceWasmFunctionType(WasmFunctionType(emptyList(), listOf(anyRefNull, cont0RefNull)))
     }
 
@@ -1383,7 +1383,7 @@ class BodyGenerator(
             // Used as a placeholder to be stored in WasmContinuationBox.wasmContinuation.
             // Substituted by the actual wasm continuation, when the coroutine suspends.
             wasmSymbols.coroutinesStackSwitchingIntrinsics?.nullContrefIntrinsic -> {
-                val boundContType = typeCodegenContext.referenceBoundedContHeapType()
+                val boundContType = typeCodegenContext.referenceBoundContHeapType()
                 body.buildInstr(WasmOp.REF_NULL, location, WasmImmediate.HeapType(boundContType))
             }
 

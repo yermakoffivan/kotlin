@@ -151,7 +151,7 @@ class WasmTypeTransformer(
                     check(arity == 0) {
                         "typedcontref supports only the bounded coroutine continuation, got arity: $arity"
                     }
-                    WasmRefNullType(typeCodegenContext.referenceBoundedContHeapType())
+                    WasmRefNullType(typeCodegenContext.referenceBoundContHeapType())
                 }
                 else -> error("Unknown reference type $name")
             }

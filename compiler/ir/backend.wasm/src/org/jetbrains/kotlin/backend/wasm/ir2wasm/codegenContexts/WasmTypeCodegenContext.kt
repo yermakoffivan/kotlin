@@ -104,7 +104,7 @@ open class WasmTypeCodegenContext(
         return Synthetics.GcTypes.boundContType
     }
 
-    fun referenceBoundedContHeapType(): ContHeapTypeSymbol {
+    fun referenceBoundContHeapType(): ContHeapTypeSymbol {
         defineBoundContType()
         return Synthetics.HeapTypes.boundContType
     }
