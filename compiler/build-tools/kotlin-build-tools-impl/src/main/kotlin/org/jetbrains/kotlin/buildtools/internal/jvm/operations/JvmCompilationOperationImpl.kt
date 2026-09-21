@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.buildtools.internal.arguments.absolutePathStringOrTh
 import org.jetbrains.kotlin.buildtools.internal.jvm.*
 import org.jetbrains.kotlin.buildtools.internal.jvm.JvmSnapshotBasedIncrementalCompilationOptionsImpl.Companion.PRECISE_JAVA_TRACKING
 import org.jetbrains.kotlin.buildtools.internal.jvm.JvmSnapshotBasedIncrementalCompilationOptionsImpl.Companion.USE_FIR_RUNNER
+import org.jetbrains.kotlin.buildtools.internal.jvm.KaptConfigurationImpl.Companion.SOURCE_OUTPUT_DIR
 import org.jetbrains.kotlin.buildtools.internal.trackers.getMetricsReporter
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -300,6 +301,9 @@ internal class JvmCompilationOperationImpl private constructor(
             val kaptBuilder = kaptConfiguration.deepCopy()
             workingDirectory?.let { path ->
                 kaptBuilder[KaptConfigurationImpl.INCREMENTAL_DATA_OUTPUT_DIR] = path
+            }
+            if (kaptBuilder[SOURCE_OUTPUT_DIR] == null) {
+                kaptBuilder[SOURCE_OUTPUT_DIR] = destinationDirectory // not used but must be provided
             }
             compilerPlugins += kaptBuilder.toCompilerPlugin()
             compilerArguments[CommonCompilerArgumentsImpl.COMPILER_PLUGINS] = compilerPlugins

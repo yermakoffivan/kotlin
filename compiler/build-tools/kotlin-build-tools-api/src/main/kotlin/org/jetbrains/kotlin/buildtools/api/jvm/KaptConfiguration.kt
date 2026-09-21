@@ -64,13 +64,6 @@ public interface KaptConfiguration {
      */
     public val annotationProcessorsClasspath: List<Path>
 
-    /**
-     * Output directory for generated sources.
-     *
-     * @since 2.5.0
-     */
-    public val sourcesOutputDir: Path
-
     public val aptPhase: AptPhase?
     public val stubsPhase: StubsPhase?
 
@@ -107,13 +100,6 @@ public interface KaptConfiguration {
         public val annotationProcessorsClasspath: List<Path>
 
         /**
-         * Output directory for generated sources.
-         *
-         * @since 2.5.0
-         */
-        public val sourcesOutputDir: Path
-
-        /**
          * Retrieves the value associated with the given key of type Option<V>.
          *
          * @param key The option key used to fetch the associated value.
@@ -134,10 +120,11 @@ public interface KaptConfiguration {
         /**
          * Enables the 'apt' phase in this KAPT configuration and returns a view on this builder that lets you configure options for it.
          *
+         * @param sourcesOutputDir Output directory for generated sources.
          * @return an [AptPhase.Builder] that can be used to further configure this KAPT configuration.
          * @since 2.5.0
          */
-        public fun withAptPhase(): AptPhase.Builder
+        public fun withAptPhase(sourcesOutputDir: Path): AptPhase.Builder
 
         /**
          * Enables the 'stubs' phase in this KAPT configuration and returns a view on this builder that lets you configure options for it.
@@ -279,16 +266,6 @@ public interface KaptConfiguration {
              */
             @JvmField
             public val CORRECT_ERROR_TYPES: Option<Boolean> = Option("correctErrorTypes", KotlinReleaseVersion(2, 5, 0))
-
-            /**
-             * Output path for generated classes.
-             *
-             * If not set, defaults to the [org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.destinationDirectory].
-             *
-             * @since 2.5.0
-             */
-            @JvmField
-            public val CLASS_OUTPUT_DIR: Option<Path?> = Option("classes", KotlinReleaseVersion(2, 5, 0))
 
             /**
              * Use only in apt mode. Compiled sources (.class files) from previous compilation. This is typically a kotlinc or javac output.

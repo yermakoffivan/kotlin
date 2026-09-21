@@ -21,7 +21,6 @@ internal class KaptConfigurationImpl(
     val options: Options = Options(KaptConfiguration::class),
     override val kaptClasspath: List<Path>,
     override val stubsOutputDir: Path,
-    override val sourcesOutputDir: Path,
     override val annotationProcessorsClasspath: List<Path>,
     var hasAptPhase: Boolean = false,
     var hasStubsPhase: Boolean = false,
@@ -34,13 +33,11 @@ internal class KaptConfigurationImpl(
     constructor(
         kaptClasspath: List<Path>,
         stubsOutputDir: Path,
-        sourcesOutputDir: Path,
         annotationProcessorsClasspath: List<Path>,
     ) : this(
         Options(KaptConfiguration::class),
         kaptClasspath = kaptClasspath.toList(),
         stubsOutputDir = stubsOutputDir,
-        sourcesOutputDir = sourcesOutputDir,
         annotationProcessorsClasspath = annotationProcessorsClasspath.toList()
     ) {
         initializeOptions(this::class, options)
@@ -64,8 +61,9 @@ internal class KaptConfigurationImpl(
         options[key] = value
     }
 
-    override fun withAptPhase(): KaptConfiguration.AptPhase.Builder {
+    override fun withAptPhase(sourcesOutputDir: Path): KaptConfiguration.AptPhase.Builder {
         hasAptPhase = true
+        this[SOURCE_OUTPUT_DIR] = sourcesOutputDir
         return this
     }
 
@@ -88,9 +86,8 @@ internal class KaptConfigurationImpl(
 
     fun toCompilerPlugin(): CompilerPlugin {
         val copy = deepCopy()
-        copy.set(STUBS_OUTPUT_DIR, stubsOutputDir)
-        copy.set(SOURCE_OUTPUT_DIR, sourcesOutputDir)
-        copy.set(ANNOTATION_PROCESSOR_CLASSPATH, annotationProcessorsClasspath)
+        copy[STUBS_OUTPUT_DIR] = stubsOutputDir
+        copy[ANNOTATION_PROCESSOR_CLASSPATH] = annotationProcessorsClasspath
         return CompilerPlugin(
             PLUGIN_ID,
             classpath = kaptClasspath,
@@ -159,7 +156,6 @@ internal class KaptConfigurationImpl(
             options.deepCopy(),
             kaptClasspath = kaptClasspath,
             stubsOutputDir = stubsOutputDir,
-            sourcesOutputDir = sourcesOutputDir,
             annotationProcessorsClasspath = annotationProcessorsClasspath,
             hasAptPhase,
             hasStubsPhase
@@ -181,7 +177,6 @@ internal class KaptConfigurationImpl(
         val INCLUDE_COMPILE_CLASSPATH: Option<Boolean> = Option("includeCompileClasspath", true)
         val CORRECT_ERROR_TYPES: Option<Boolean> = Option("correctErrorTypes", false)
         val SOURCE_OUTPUT_DIR: Option<Path?> = Option("sources", null)
-        val CLASS_OUTPUT_DIR: Option<Path?> = Option("classes", null)
         val CHANGED_FILES: Option<List<Path>?> = Option("changedFile", null)
         val COMPILED_SOURCES_DIR: Option<List<Path>?> = Option("compiledSourcesDir", null)
         val INCREMENTAL_CACHE: Option<Path?> = Option("incrementalCache", null)

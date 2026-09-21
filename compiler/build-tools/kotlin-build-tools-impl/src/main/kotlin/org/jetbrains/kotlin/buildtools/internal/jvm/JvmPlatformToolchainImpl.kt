@@ -53,13 +53,11 @@ internal class JvmPlatformToolchainImpl(
     override fun kaptCompilerPluginBuilder(
         kaptClasspath: List<Path>,
         stubsOutputDir: Path,
-        sourcesOutputDir: Path,
         annotationProcessorsClasspath: List<Path>
     ): KaptConfiguration.Builder {
         return KaptConfigurationImpl(
             kaptClasspath = kaptClasspath,
             stubsOutputDir = stubsOutputDir,
-            sourcesOutputDir = sourcesOutputDir,
             annotationProcessorsClasspath = annotationProcessorsClasspath
         )
     }

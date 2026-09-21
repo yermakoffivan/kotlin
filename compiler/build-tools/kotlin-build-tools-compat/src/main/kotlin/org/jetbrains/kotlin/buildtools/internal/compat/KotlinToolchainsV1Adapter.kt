@@ -55,7 +55,6 @@ public class KotlinToolchainsV1Adapter(
             override fun kaptCompilerPluginBuilder(
                 kaptClasspath: List<Path>,
                 stubsOutputDir: Path,
-                sourcesOutputDir: Path,
                 annotationProcessorsClasspath: List<Path>
             ): KaptConfiguration.Builder {
                 TODO("Not available in this version.")

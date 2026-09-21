@@ -38,7 +38,6 @@ internal class KotlinWrapperPre2_5_0(
         override fun kaptCompilerPluginBuilder(
             kaptClasspath: List<Path>,
             stubsOutputDir: Path,
-            sourcesOutputDir: Path,
             annotationProcessorsClasspath: List<Path>
         ): KaptConfiguration.Builder {
             TODO("Only available starting from Kotlin compiler 2.5.0")
