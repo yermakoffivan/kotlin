@@ -80,10 +80,12 @@ tasks.withType<Test>().configureEach {
             println("##teamcity[addBuildTag '$testSubset']")
         }
 
+        /* Exclude nightly tests if not specifically running in 'nightly' mode */
         if (!areNightlyTestsEnabled.get()) {
             testFramework.options.excludeTags("nightly", "org.jetbrains.kotlin.testFederation.NightlyTest")
         }
 
+        /* Check if classpath contains vintage engine and report it as unsupported */
         if (classpath.files.any { file -> file.name.contains("junit-vintage-engine") }) {
             error("Unsupported 'junit-vintage-engine' found in classpath. Please remove this dependency")
         }
