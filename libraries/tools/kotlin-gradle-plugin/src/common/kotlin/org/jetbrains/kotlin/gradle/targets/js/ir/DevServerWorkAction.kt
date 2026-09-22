@@ -101,7 +101,6 @@ internal abstract class DevServerWorkAction : WorkAction<DevServerWorkAction.Dev
         val contentType = contentTypeFor(file.name)
         val size = file.length()
         exchange.responseHeaders.set("Content-Type", contentType)
-//        addCorsHeaders(exchange)
         exchange.sendResponseHeaders(200, size)
         exchange.responseBody.use {
             file.inputStream().copyTo(it)

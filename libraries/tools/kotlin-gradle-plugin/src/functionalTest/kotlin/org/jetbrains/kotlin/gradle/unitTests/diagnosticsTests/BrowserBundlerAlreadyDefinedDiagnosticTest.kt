@@ -57,4 +57,18 @@ class BrowserBundlerAlreadyDefinedDiagnosticTest {
 
         project.assertContainsDiagnostic(KotlinToolingDiagnostics.BrowserBundlerAlreadyDefined)
     }
+
+    @Test
+    fun `diagnostic reported if another bundler is defined implicitly`() {
+        val project = buildProjectWithMPP {
+            kotlin {
+                wasmJs {
+                    browser(KotlinBrowserBundler.NONE) {}
+                    browser {}
+                }
+            }
+        }.evaluate()
+
+        project.assertContainsDiagnostic(KotlinToolingDiagnostics.BrowserBundlerAlreadyDefined)
+    }
 }

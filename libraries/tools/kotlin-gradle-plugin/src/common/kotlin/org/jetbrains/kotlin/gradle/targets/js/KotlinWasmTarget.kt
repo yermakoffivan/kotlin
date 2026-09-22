@@ -59,11 +59,6 @@ internal constructor(
         }
     }
 
-    override fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
-        bundler = KotlinBrowserBundler.WEBPACK
-        browser.body()
-    }
-
     override fun browser(bundler: KotlinBrowserBundler, body: KotlinWasmJsBrowserDsl.() -> Unit) {
         val definedBundler = this@KotlinWasmTarget.bundler
         if (definedBundler == null) {
@@ -78,6 +73,10 @@ internal constructor(
             )
         }
         (browser as KotlinBrowserJsIr).body()
+    }
+
+    override fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
+        super<KotlinWasmJsTargetDsl>.browser(body)
     }
 
     //region d8

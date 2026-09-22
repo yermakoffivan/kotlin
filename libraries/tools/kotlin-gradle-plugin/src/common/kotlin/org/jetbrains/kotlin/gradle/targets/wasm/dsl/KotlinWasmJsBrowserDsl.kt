@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.targets.wasm.dsl
 
 import org.gradle.api.Action
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBrowserDsl
 import org.jetbrains.kotlin.gradle.tasks.KotlinWasmDevServer
 
@@ -17,6 +18,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinWasmDevServer
  *
  * **Note:** This interface is not intended for implementation by build script or plugin authors.
  */
+@ExperimentalWasmDsl
 interface KotlinWasmJsBrowserDsl : KotlinJsBrowserDsl {
     fun devServer(body: Action<KotlinWasmDevServer>)
 }

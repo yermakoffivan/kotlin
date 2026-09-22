@@ -10,6 +10,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 /**
  * Represents a development server task for serving Wasm outputs locally.
@@ -18,6 +19,7 @@ import org.gradle.api.tasks.options.Option
  * It is usually implemented as part of the Kotlin Gradle plugin setup to facilitate easier
  * local debugging of web applications.
  */
+@ExperimentalWasmDsl
 interface KotlinWasmDevServer : Task {
     /**
      * The directory containing the content to be served by the development server.

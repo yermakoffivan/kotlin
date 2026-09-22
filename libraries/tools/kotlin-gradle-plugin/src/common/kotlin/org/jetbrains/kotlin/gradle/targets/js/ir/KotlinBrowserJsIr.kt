@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.targets.js.ir
 
 import org.gradle.api.Action
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.TEST_COMPILATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBrowserDsl
@@ -19,6 +20,7 @@ import org.jetbrains.kotlin.gradle.targets.wasm.dsl.KotlinWasmJsBrowserDsl
 import org.jetbrains.kotlin.gradle.utils.withType
 import javax.inject.Inject
 
+@OptIn(ExperimentalWasmDsl::class)
 abstract class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
     KotlinJsIrNpmBasedSubTarget(target, "browser"),
     KotlinJsBrowserDsl,
@@ -76,6 +78,7 @@ abstract class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
             }
     }
 
+    @ExperimentalWasmDsl
     override fun devServer(body: Action<KotlinWasmDevServer>) {
         subTargetConfigurators
             .withType<NoBundleConfigurator>()

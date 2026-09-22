@@ -5,9 +5,13 @@
 
 package org.jetbrains.kotlin.gradle.wasm
 
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.KotlinBrowserBundler
 import org.jetbrains.kotlin.gradle.js.AbstractWebContinuousBuildIT
 import org.jetbrains.kotlin.gradle.testbase.*
+import org.jetbrains.kotlin.gradle.uklibs.applyMultiplatform
 import org.jetbrains.kotlin.gradle.util.replaceText
 import org.jetbrains.kotlin.test.TestMetadata
 import org.junit.jupiter.api.Timeout
@@ -15,8 +19,10 @@ import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
@@ -29,20 +35,41 @@ class WasmJsContinuousBuildIT : AbstractWebContinuousBuildIT() {
         ).disableIsolatedProjectsBecauseOfJsAndWasmKT75899()
 
     @GradleTest
-    @TestMetadata("wasm-browser-simple-project")
     // Timeout is much longer than expected test duration because sometimes KGP needs to download JS tools.
     @Timeout(value = 10, unit = TimeUnit.MINUTES)
-    fun testJsRunContinuousBuild(
+    fun testWasmJsRunContinuousBuildWithoutBundler(
         gradleVersion: GradleVersion,
     ) {
-        project("wasm-browser-simple-project", gradleVersion) {
-
-            buildGradleKts.modify {
-                it.replace(
-                    "browser",
-                    "browser(bundler = org.jetbrains.kotlin.gradle.dsl.KotlinBrowserBundler.NONE)"
-                )
+        project("empty", gradleVersion) {
+            settingsBuildScriptInjection {
+                settings.rootProject.name = "wasm-browser-simple-project"
             }
+
+            plugins {
+                kotlin("multiplatform")
+            }
+
+            buildScriptInjection {
+                project.applyMultiplatform {
+                    @OptIn(ExperimentalWasmDsl::class)
+                    wasmJs {
+                        binaries.executable()
+                        browser(bundler = KotlinBrowserBundler.NONE)
+                    }
+                }
+            }
+
+            projectPath.resolve("src/wasmJsMain/kotlin/A.kt")
+                .also {
+                    it.createParentDirectories()
+                }
+                .writeText(
+                    """
+                    fun main() {
+                        println("Hello, world")
+                    }
+                    """.trimIndent()
+                )
 
             val compiledWasm =
                 projectPath.resolve("build/compileSync/wasmJs/main/developmentExecutable/kotlin/wasm-browser-simple-project.wasm")

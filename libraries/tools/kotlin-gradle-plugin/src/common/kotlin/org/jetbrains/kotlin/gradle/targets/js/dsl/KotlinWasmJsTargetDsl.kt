@@ -161,8 +161,9 @@ interface KotlinWasmJsTargetDsl : KotlinWasmTargetDsl, KotlinJsTargetDsl {
      *
      * @see KotlinJsBrowserDsl
      */
+    @OptIn(ExperimentalWasmDsl::class)
     override fun browser(body: KotlinJsBrowserDsl.() -> Unit) {
-        super.browser(body)
+        browser(bundler = KotlinBrowserBundler.WEBPACK, body = body)
     }
 
     /**
@@ -170,8 +171,9 @@ interface KotlinWasmJsTargetDsl : KotlinWasmTargetDsl, KotlinJsTargetDsl {
      *
      * @see KotlinJsBrowserDsl
      */
+    @OptIn(ExperimentalWasmDsl::class)
     override fun browser() {
-        super.browser()
+        browser(bundler = KotlinBrowserBundler.WEBPACK)
     }
 
     /**
@@ -179,8 +181,11 @@ interface KotlinWasmJsTargetDsl : KotlinWasmTargetDsl, KotlinJsTargetDsl {
      *
      * @see KotlinJsBrowserDsl
      */
+    @OptIn(ExperimentalWasmDsl::class)
     override fun browser(fn: Action<KotlinJsBrowserDsl>) {
-        super.browser(fn)
+        browser(bundler = KotlinBrowserBundler.WEBPACK) {
+            fn.execute(this)
+        }
     }
 }
 
