@@ -2571,7 +2571,7 @@ internal object KotlinToolingDiagnostics {
                     """.trimIndent()
                 }
                 .solution {
-                    "Please declare the same bundler in all 'browser { }' blocks of the '$targetName' target"
+                    "Please declare the same bundler in all 'browser(${requestedBundler.name}) { }' blocks of the '$targetName' target"
                 }
         }
     }
