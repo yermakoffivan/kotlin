@@ -45,9 +45,7 @@ class TestFederationFunctionalTest {
     fun `test - ContractTestsForJs`() {
         val result = runTestBuild(ContractTestsForJs)
         assertEquals(
-            setOf(
-                TestResult("PseudoTest", "js contract test"),
-            ),
+            setOf(TestResult("PseudoTest", "js contract test")),
             result.executedTests
         )
     }
@@ -56,9 +54,7 @@ class TestFederationFunctionalTest {
     fun `test - ContractTestsForWasm`() {
         val result = runTestBuild(ContractTestsForWasm)
         assertEquals(
-            setOf(
-                TestResult("PseudoTest", "wasm contract test"),
-            ),
+            setOf(TestResult("PseudoTest", "wasm contract test")),
             result.executedTests
         )
     }
@@ -215,6 +211,50 @@ class TestFederationFunctionalTest {
     }
 
     @Test
+    fun `test - mode=Smoke, changedDomains={} - maps to SmokeTests`() {
+        val result = runTestBuild(mode = TestFederationMode.Smoke, changedDomains = emptyList())
+        assertEquals(
+            setOf(TestResult("PseudoTest", "smoke test")),
+            result.executedTests
+        )
+        assertTrue(result.buildResult.output.contains("Test subsets: [SmokeTests]"))
+    }
+
+    @Test
+    fun `test - mode=Smoke, changedDomains={Js} - maps to SmokeTests + ContractTestsForJs`() {
+        val result = runTestBuild(mode = TestFederationMode.Smoke, changedDomains = listOf(Domain.Js))
+        assertEquals(
+            setOf(
+                TestResult("PseudoTest", "smoke test"),
+                TestResult("PseudoTest", "js contract test"),
+            ),
+            result.executedTests
+        )
+        assertTrue(result.buildResult.output.contains("Test subsets: [SmokeTests, ContractTestsForJs]"))
+    }
+
+    @Test
+    fun `test - mode=Smoke, changedDomains={Js,Wasm} - maps to SmokeTests + ContractTestsForJs + ContractTestsForWasm`() {
+        val result = runTestBuild(mode = TestFederationMode.Smoke, changedDomains = listOf(Domain.Js, Domain.Wasm))
+        assertEquals(
+            setOf(
+                TestResult("PseudoTest", "smoke test"),
+                TestResult("PseudoTest", "js contract test"),
+                TestResult("PseudoTest", "wasm contract test")
+            ),
+            result.executedTests
+        )
+        assertTrue(result.buildResult.output.contains("Test subsets: [SmokeTests, ContractTestsForJs, ContractTestsForWasm]"))
+    }
+
+    @Test
+    fun `test - mode=Full - maps to AllTests`() {
+        val result = runTestBuild(mode = TestFederationMode.Full)
+        assertEquals(allTests, result.executedTests)
+        assertTrue(result.buildResult.output.contains("Test subsets: [AllTests]"))
+    }
+
+    @Test
     fun `test - test federation disabled`() {
         /* Test with federation enabled */
         run {
@@ -240,7 +280,7 @@ class TestFederationFunctionalTest {
     }
 
     @Test
-    fun `test - explicit subsets take precedence over mode and changedDomains`() {
+    fun `test - explicit subsets take precedence over mode and changed domains`() {
         run {
             val result = runTestBuild(
                 SmokeTests, ContractTestsForWasm,

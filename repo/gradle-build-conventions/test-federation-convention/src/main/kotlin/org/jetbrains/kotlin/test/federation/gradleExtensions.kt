@@ -90,7 +90,7 @@ val AbstractTestTask.testFederationMode: Provider<TestFederationMode> by extensi
 }
 
 @DelicateTestFederationApi
-val Test.testFederationSubsets: Provider<Set<TestSubset>> by extensionProperty {
+val Test.testFederationSubsets: Provider<List<TestSubset>> by extensionProperty {
     val extension = testFederationExtension
 
     project.providers.gradleProperty(TEST_FEDERATION_SUBSETS_KEY)
@@ -99,8 +99,8 @@ val Test.testFederationSubsets: Provider<Set<TestSubset>> by extensionProperty {
         .orElse(
             testFederationMode.zip(project.testFederationChangedDomains) { mode, changedDomains ->
                 when (mode) {
-                    TestFederationMode.Full -> setOf(AllTests)
-                    TestFederationMode.Smoke -> buildSet {
+                    TestFederationMode.Full -> listOf(AllTests)
+                    TestFederationMode.Smoke -> buildList {
                         add(SmokeTests)
                         changedDomains.forEach { domain -> add(contractTestsSubsetOf(domain)) }
                     }
@@ -109,7 +109,7 @@ val Test.testFederationSubsets: Provider<Set<TestSubset>> by extensionProperty {
         )
         .map { subsets ->
             when {
-                SmokeTests in subsets && extension.smokeTests.includeAll.get() -> setOf(AllTests)
+                SmokeTests in subsets && extension.smokeTests.includeAll.get() -> listOf(AllTests)
                 else -> subsets
             }
         }

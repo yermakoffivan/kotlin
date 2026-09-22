@@ -8,5 +8,6 @@ package org.jetbrains.kotlin.testFederation
 fun Iterable<TestSubset>.toArgumentString(): String =
     sorted().joinToString(",") { it.name }
 
-fun String.toTestSubsets(): Set<TestSubset> =
-    if (isBlank()) emptySet() else split(",").map { TestSubset.valueOf(it.trim()) }.toSet()
+fun String.toTestSubsets(): List<TestSubset> =
+    if (isBlank()) emptyList()
+    else split(",").map { TestSubset.valueOf(it.trim()) }
