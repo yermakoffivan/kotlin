@@ -85,6 +85,7 @@ class UIntTest {
 
 
     private fun testMulDivRem(number: UInt, divisor: UInt, div: UInt, rem: UInt) {
+        require(number > 0u) { "When number is 0, use testMulDivRemZero" }
         require(divisor > 1u) { "When divisor is 1, use testMulDivRemByOne" }
 
         assertEquals(div, number / divisor)
@@ -98,7 +99,10 @@ class UIntTest {
     }
 
     private fun testMulDivRemByOne(number: UInt, div: UInt, rem: UInt) {
+        require(number > 0u) { "When number is 0, use testMulDivRemZero" }
+
         val divisor = 1u
+
         assertEquals(div, number / divisor)
         assertEquals(rem, number % divisor)
         assertEquals(div, number.floorDiv(divisor))
@@ -106,7 +110,22 @@ class UIntTest {
 
         assertEquals(number, div * divisor + rem)
         assertTrue(rem < divisor)
-        assertTrue(div == number)
+        assertEquals(div, number)
+    }
+
+    private fun testMulDivRemZero(divisor: UInt, div: UInt, rem: UInt) {
+        require(divisor > 0u)
+
+        val number = 0u
+
+        assertEquals(div, number / divisor)
+        assertEquals(rem, number % divisor)
+        assertEquals(div, number.floorDiv(divisor))
+        assertEquals(rem, number.mod(divisor))
+
+        assertEquals(number, div * divisor + rem)
+        assertTrue(rem < divisor)
+        assertEquals(div, number)
     }
 
     @Test
@@ -117,9 +136,15 @@ class UIntTest {
     }
 
     @Test
+    fun divRemZero() = repeat(1000) {
+        val divisor = Random.nextUInt(until = UInt.MAX_VALUE) + 1u
+        testMulDivRemZero(divisor, div = 0u, rem = 0u)
+    }
+
+    @Test
     fun divRemByOne() = repeat(1000) {
-        val number = Random.nextUInt()
-        testMulDivRemByOne(number, number, 0u)
+        val number = Random.nextUInt(until = UInt.MAX_VALUE) + 1u
+        testMulDivRemByOne(number, div = number, rem = 0u)
     }
 
     @Test
