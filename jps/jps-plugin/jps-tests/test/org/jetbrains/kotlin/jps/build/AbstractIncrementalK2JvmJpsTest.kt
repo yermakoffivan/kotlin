@@ -16,7 +16,6 @@ abstract class AbstractIncrementalK2JvmJpsTest(
         if (LanguageVersion.LATEST_STABLE.major < 2) {
             arguments.languageVersion = "2.0"
         }
-        additionalCommandLineArguments = additionalCommandLineArguments + listOf("-Xuse-fir-lt=false")
         super.updateCommandLineArguments(arguments)
     }
 
