@@ -7,8 +7,6 @@ package org.jetbrains.kotlin.gradle.targets.js.dsl
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
-import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompilerOptions
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.HasBinaries
 import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
