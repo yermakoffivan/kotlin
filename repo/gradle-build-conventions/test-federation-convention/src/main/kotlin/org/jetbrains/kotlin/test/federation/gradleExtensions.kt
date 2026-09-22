@@ -165,7 +165,8 @@ val Project.testFederationChangedDomains: Provider<Set<Domain>> by extensionProp
         .orElse(project.affectedDomainsService.map { it.changedDomains })
 }
 
-internal val Test.testFederationExtension: TestFederationTaskExtension
+@DelicateTestFederationApi
+val Test.testFederationExtension: TestFederationTaskExtension
     get() = extensions.findByType(TestFederationTaskExtension::class.java)
         ?: extensions.create("testFederation", TestFederationTaskExtension::class.java)
             .also { ext -> jvmArgumentProviders.add(ext) }
