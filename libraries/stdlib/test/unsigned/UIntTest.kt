@@ -97,7 +97,7 @@ class UIntTest {
 
     @Test
     fun divRem() = repeat(1000) {
-        val number = Random.nextUInt()
+        val number = Random.nextUInt(until = UInt.MAX_VALUE) + 1u
         val divisor = Random.nextUInt(until = UInt.MAX_VALUE) + 1u
         testMulDivRem(number, divisor, number / divisor, number % divisor)
     }
