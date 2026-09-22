@@ -8,9 +8,6 @@ package org.jetbrains.kotlin.gradle.targets.js.ir
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskAction
-import org.gradle.deployment.internal.Deployment
-import org.gradle.deployment.internal.DeploymentHandle
-import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.work.DisableCachingByDefault
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -40,9 +37,7 @@ internal abstract class KotlinWasmDevServerTaskImpl
         val lockFile = temporaryDir.resolve("server.lock")
 
         if (isContinuous) {
-            val deploymentRegistry = services.get(DeploymentRegistry::class.java)
-            val deploymentHandle = deploymentRegistry.get("wasmDevServer", Handle::class.java)
-            if (deploymentHandle == null) {
+            if (!lockFile.exists()) {
                 val workQueue = workerExecutor.processIsolation()
 
                 workQueue.submit(DevServerWorkAction::class.java) { params ->
@@ -53,13 +48,6 @@ internal abstract class KotlinWasmDevServerTaskImpl
                     params.lockFile.set(lockFile)
                     params.continuous.set(true)
                 }
-
-                deploymentRegistry.start(
-                    "wasmDevServer",
-                    DeploymentRegistry.ChangeBehavior.BLOCK,
-                    Handle::class.java,
-                    lockFile,
-                )
             }
         } else {
             val workQueue = workerExecutor.processIsolation()
@@ -88,20 +76,6 @@ internal abstract class KotlinWasmDevServerTaskImpl
         }
 
         error("Unable to find free port in a range from $startPort to ${startPort + numberOfAttempts}")
-    }
-
-    internal abstract class Handle @Inject constructor(
-        private val lockFile: File,
-    ) : DeploymentHandle {
-
-        override fun isRunning(): Boolean =
-            lockFile.exists()
-
-        override fun start(deployment: Deployment) {
-        }
-
-        override fun stop() {
-        }
     }
 
     internal companion object {
