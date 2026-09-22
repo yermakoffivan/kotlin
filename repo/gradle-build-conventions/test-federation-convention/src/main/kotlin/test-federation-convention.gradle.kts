@@ -94,6 +94,9 @@ tasks.withType<Test>().configureEach {
 
 afterEvaluate {
     tasks.withType<Test>().configureEach {
+        /*
+        A task that selects only a subset of tests may have no tests to run.
+        */
         val defaultFailOnNoDiscoveredTests = failOnNoDiscoveredTests.get()
         failOnNoDiscoveredTests.value(testFederationSubsets.map { subsets ->
             if (TestSubset.AllTests !in subsets) false
