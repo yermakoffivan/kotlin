@@ -103,6 +103,10 @@ abstract class BasicCompilation<A : TestCompilationArtifact>(
         // We use dev distribution for tests as it provides a full set of testing utilities,
         // which might not be available in user distribution.
         add("-Xllvm-variant=dev")
+
+        // Keep the compiler's view of the Apple toolchain and sysroot in sync with `Settings.configurables`
+        if (useProvisionedXcode) add("-Xoverride-konan-properties=useProvisionedXcode=true")
+
         binaryOptions.options.let { options ->
             when {
                 // Explicitly mentioned runtimeAssertionsMode overrides default test infra behaviour.
@@ -539,6 +543,11 @@ class CInteropCompilation(
             add(expectedArtifact.klibFile.canonicalPath)
             if (noDefaultLibs) {
                 add("-no-default-libs")
+            }
+            // Same as for the compiler above, but cinterop takes `-X` options as two separate tokens.
+            if (useProvisionedXcode) {
+                add("-Xoverride-konan-properties")
+                add("useProvisionedXcode=true")
             }
             dependencies.forEach {
                 add("-l")

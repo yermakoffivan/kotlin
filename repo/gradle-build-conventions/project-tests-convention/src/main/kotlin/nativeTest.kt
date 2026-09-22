@@ -446,6 +446,7 @@ fun ProjectTestsExtension.nativeTestTask(
                 "DEVELOPER_DIR",
                 project.hostXcodeConfiguration().singleFile.resolve("Contents/Developer").absolutePath
             )
+            systemProperty("kotlin.internal.native.test.useProvisionedXcode", "true")
         }
 
         useJUnitPlatform {

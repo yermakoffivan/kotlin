@@ -74,6 +74,8 @@ val Settings.configurables: Configurables
             // Development variant of LLVM is used to have utilities like FileCheck
             put("llvmHome.${HostManager.hostName}", "\$llvm.${HostManager.hostName}.dev")
 
+            if (useProvisionedXcode) put("useProvisionedXcode", "true")
+
             val macabi = get<ExplicitBinaryOptions>().getOrNull(BinaryOptions.macabi) ?: false
             if (macabi) {
                 // The same as in KonanConfig. See the motivation there.
@@ -100,3 +102,11 @@ val Settings.configurables: Configurables
 val Settings.withPlatformLibs: Boolean
     // XCTest depends on platform libraries, so platform libraries must be available.
     get() = get<XCTestRunner>().isEnabled || get<PlatformLibs>() == PlatformLibs.DEFAULT
+
+/**
+ * True when the Apple toolchain and sysroot must be resolved from the whole Xcode provisioned under
+ * `<dependencies root>/xcode_<version>_<build>` instead of from the split `target-toolchain-*` /
+ * `target-sysroot-*` internal-server dependencies.
+ */
+internal val useProvisionedXcode: Boolean
+    get() = System.getProperty("kotlin.internal.native.test.useProvisionedXcode") == "true"
