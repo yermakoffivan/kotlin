@@ -1,5 +1,5 @@
 // ISSUE: KT-89451
-// IGNORE_BACKEND: ANY
+// DUMP_IR
 interface I {
     fun run()
 }
