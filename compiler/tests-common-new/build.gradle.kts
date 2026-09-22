@@ -143,8 +143,6 @@ projectTests {
             autoSmokeTestPercentage = 3
         )
     }
-
-    testGenerator("org.jetbrains.kotlin.test.TestGeneratorForTestCommonNewKt", generateTestsInBuildDirectory = true)
 }
 
 testsJarToBeUsedAlongWithFixtures()

@@ -18,6 +18,9 @@ dependencies {
     testFixturesApi(testFixtures(project(":compiler:tests-common-new")))
     testFixturesImplementation(testFixtures(project(":generators:test-generator")))
     testFixturesImplementation(testFixtures(project(":compiler:tests-spec")))
+    testFixturesImplementation(project(":compiler:backend.jvm.entrypoint"))
+    testFixturesImplementation(project(":compiler:backend.jvm.lower"))
+    testFixturesImplementation(commonDependency("org.jetbrains.kotlin:kotlin-reflect")) { isTransitive = false }
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter.api)
@@ -29,6 +32,7 @@ dependencies {
 
     testRuntimeOnly(intellijCore())
 
+    testFixturesCompileOnly(toolsJarApi())
     testRuntimeOnly(toolsJar())
     testRuntimeOnly(libs.intellij.fastutil)
 }
