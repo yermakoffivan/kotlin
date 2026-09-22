@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.konan.target.Distribution
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.PlatformManager
+import org.jetbrains.kotlin.konan.test.blackbox.support.ProcessLevelProperty
 import org.jetbrains.kotlin.test.services.JUnit5Assertions.assertTrue
 import org.jetbrains.kotlin.test.services.JUnit5Assertions.fail
 import org.jetbrains.kotlin.test.services.TestService
@@ -109,18 +110,19 @@ val Settings.withPlatformLibs: Boolean
  * `target-sysroot-*` internal-server dependencies.
  */
 internal val useProvisionedXcode: Boolean
-    get() = System.getProperty("kotlin.internal.native.test.useProvisionedXcode") == "true"
+    get() = ProcessLevelProperty.USE_PROVISIONED_XCODE.readValue().toBoolean()
 
 /**
- * [useProvisionedXcode] for a tool that loads `konan.properties` on its own, in the form the Kotlin/Native compiler CLI
- * expects: `-X` options take a single `=`-joined token.
+ * [useProvisionedXcode] for the Kotlin/Native compiler, which loads `konan.properties` on its own and so has to be
+ * told about the provisioned Xcode explicitly.
  */
 val provisionedXcodeCompilerArgs: List<String>
     get() = if (useProvisionedXcode) listOf("-Xoverride-konan-properties=useProvisionedXcode=true") else emptyList()
 
 /**
- * The same as [provisionedXcodeCompilerArgs], but for cinterop: its `kotlinx.cli` parser takes the option name and its
- * value as two separate tokens. Repeating the option accumulates there as well.
+ * The same as [provisionedXcodeCompilerArgs], but for cinterop, whose `kotlinx.cli` parser only splits a token on `=`
+ * under `OptionPrefixStyle.GNU` and therefore rejects the `=`-joined form as an unknown option. Repeating the option
+ * accumulates there as well.
  */
 val provisionedXcodeCInteropArgs: List<String>
     get() = if (useProvisionedXcode) listOf("-Xoverride-konan-properties", "useProvisionedXcode=true") else emptyList()
