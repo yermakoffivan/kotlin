@@ -65,7 +65,7 @@ fun compileJavaFiles(files: Collection<File>, options: List<String?>, jdkHome: F
                 compilerOutputWriter,
                 fileManager,
                 diagnosticCollector,
-                options + listOf("-Djava.ext.dirs="),
+                options + listOf("-Djava.ext.dirs=") + extractPatchModuleOptions(files),
                 null,
                 javaFileObjectsFromFiles
             )
@@ -78,6 +78,15 @@ fun compileJavaFiles(files: Collection<File>, options: List<String?>, jdkHome: F
         }
     }
 }
+
+private val JAVA_SOURCE_SET_PATH_PATTERN = """(.*/java-sources/[^/]+/java/).*""".toRegex()
+
+private fun extractPatchModuleOptions(files: Collection<File>): List<String> =
+    files.mapNotNullTo(mutableSetOf()) {
+        JAVA_SOURCE_SET_PATH_PATTERN.matchEntire(it.path)?.groupValues?.getOrNull(1)
+    }.flatMap {
+        listOf("--patch-module", "java.base=$it")
+    }
 
 private fun compileJavaFilesExternally(files: Collection<File>, options: List<String?>, jdkHome: File): JavaCompilationResult {
     val command: MutableList<String?> = ArrayList()
