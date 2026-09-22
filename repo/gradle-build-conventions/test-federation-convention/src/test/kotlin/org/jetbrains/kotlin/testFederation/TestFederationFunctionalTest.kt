@@ -123,6 +123,7 @@ class TestFederationFunctionalTest {
     }
 
 
+    // TODO fix
     /**
      * Configuring 'alwaysRunAllTests' selects all tests even when a different mode is explicitly requested.
      */
@@ -193,6 +194,7 @@ class TestFederationFunctionalTest {
         }
     }
 
+    // TODO fix
     @Test
     fun `test - PlainTests selects only untagged tests`() {
         val result = runTestBuild(subsets = "PlainTests")
@@ -202,6 +204,7 @@ class TestFederationFunctionalTest {
         )
     }
 
+    // TODO fix
     @Test
     fun `test - PlainTests combined with SmokeTests selects plain and smoke tests`() {
         val result = runTestBuild(subsets = "PlainTests,SmokeTests")
@@ -323,6 +326,7 @@ class TestFederationFunctionalTest {
         }
     }
 
+    // TODO fix
     @Test
     fun `test - build with test federation disabled - build with test federation enabled (full) and alwaysRunAllTests - reuses build caches`(
         @TempDir cache: Path,
