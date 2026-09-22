@@ -10,6 +10,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.api.tasks.testing.Test
+import org.jetbrains.kotlin.testFederation.TestSubset.*
 import java.io.File
 
 /**
@@ -95,22 +96,23 @@ val Test.testFederationSubsets: Provider<Set<TestSubset>> by extensionProperty {
     project.providers.gradleProperty(TEST_FEDERATION_SUBSETS_KEY)
         .orElse(project.providers.environmentVariable(TEST_FEDERATION_SUBSETS_ENV_KEY))
         .map { it.toTestSubsets() }
-        .map { subsets ->
-            when {
-                TestSubset.SmokeTests in subsets && extension.smokeTests.includeAll.get() -> setOf(TestSubset.AllTests)
-                else -> subsets
-            }
-        }.orElse(
+        .orElse(
             testFederationMode.zip(project.testFederationChangedDomains) { mode, changedDomains ->
                 when (mode) {
-                    TestFederationMode.Full -> setOf(TestSubset.AllTests)
+                    TestFederationMode.Full -> setOf(AllTests)
                     TestFederationMode.Smoke -> buildSet {
-                        add(TestSubset.SmokeTests)
+                        add(SmokeTests)
                         changedDomains.forEach { domain -> add(contractTestsSubsetOf(domain)) }
                     }
                 }
             }
         )
+        .map { subsets ->
+            when {
+                SmokeTests in subsets && extension.smokeTests.includeAll.get() -> setOf(AllTests)
+                else -> subsets
+            }
+        }
 }
 
 /**

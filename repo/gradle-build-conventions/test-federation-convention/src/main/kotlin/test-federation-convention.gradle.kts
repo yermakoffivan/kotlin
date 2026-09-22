@@ -10,8 +10,8 @@ tasks.withType<Test>().configureEach {
     val currentDomain = testFederationDomains
     val areNightlyTestsEnabled = project.areNightlyTestsEnabled
 
-    val testFederationSubsets = testFederationSubsets
-    val formattedSubsets = testFederationSubsets.map { it.toArgumentString() }
+    val testSubsets = testFederationSubsets
+    val formattedSubsets = testSubsets.map { it.toArgumentString() }
 
     inputs.property(TEST_FEDERATION_NIGHTLY_KEY, areNightlyTestsEnabled)
     inputs.property(TEST_FEDERATION_SUBSETS_KEY, formattedSubsets)
@@ -19,16 +19,29 @@ tasks.withType<Test>().configureEach {
     val projectPath = project.buildTreePath
     val scan = project.extensions.getByType(DevelocityConfiguration::class).buildScan
 
+    fun buildFrame(vararg lines: String): String {
+        val title = "TEST FEDERATION"
+        val length = lines.maxOf { it.length } + 2
+        val borderLength = if ((length - title.length) % 2 == 0) length else length + 1
+        val topBorderLength = (borderLength - title.length) / 2
+        val topBorder = "┌" + "─".repeat(topBorderLength) + title + "─".repeat(topBorderLength) + "┐"
+        val bottomBorder = "└" + "─".repeat(borderLength) + "┘"
+        val formattedLines = lines.joinToString("\n") { "│ ${it.padEnd(borderLength - 2)} │" }
+        return topBorder + "\n" + formattedLines + "\n" + bottomBorder
+    }
+
     doFirst {
         val testFramework = testFramework
         val isJUnitPlatform = testFramework is JUnitPlatformTestFramework
-        val testSubsets = testFederationSubsets.get()
+        val testSubsets = testSubsets.get()
         val smokeTests = testFederationExtension.smokeTests
         val contractTests = testFederationExtension.contractTests
         val notCompatibleWithTestFederation = smokeTests.skip.get() || contractTests.skip.get()
 
-        logger.quiet("Current Domain: '${currentDomain.get()}'")
-        logger.quiet("Requested Test Subsets: '${formattedSubsets.get()}'")
+        logger.quiet(buildFrame(
+            "Current domain: ${currentDomain.get()}",
+            "Test subsets: $testSubsets",
+        ))
 
         scan.value("$projectPath:${this.name} domain", currentDomain.get().toString())
         scan.value("$projectPath:${this.name} test subsets", formattedSubsets.get())
@@ -111,3 +124,4 @@ afterEvaluate {
         }
     }
 }
+

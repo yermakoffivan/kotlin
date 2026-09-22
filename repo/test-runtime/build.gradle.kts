@@ -43,11 +43,13 @@ tasks.withType<Test>().configureEach {
 
     /* Used by the TestFederationFunctionalTest and 'PseudoTest' for testing the test federations behavior */
     testFederation {
-        providers.environmentVariable("_RUN_ALL_TESTS_ALWAYS_").orNull?.let {
+        providers.environmentVariable("_SMOKE_TESTS_INCLUDE_ALL_").orNull?.let {
             smokeTests { includeAll() }
         }
-        providers.environmentVariable("_RUN_ALL_TESTS_OR_SKIP_").orNull?.let {
+        providers.environmentVariable("_SKIP_SMOKES_").orNull?.let {
             smokeTests { skip() }
+        }
+        providers.environmentVariable("_SKIP_CONTRACTS_").orNull?.let {
             contractTests { skip() }
         }
     }
