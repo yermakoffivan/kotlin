@@ -33,10 +33,12 @@ private class NativeRandom : Random() {
         state = stateFromSeed(seed)
     }
 
-    private val MULTIPLIER = 0x5deece66dL
-    private val INCREMENT = 0xbL
-    private val MODULUS = 48
-    private val MASK = (1L shl MODULUS) - 1
+    companion object {
+        private const val MULTIPLIER = 0x5deece66dL
+        private const val INCREMENT = 0xbL
+        private const val MODULUS = 48
+        private const val MASK = (1L shl MODULUS) - 1
+    }
 }
 
 /** Resets the state of [NativeRandom] using the given seed for testing purposes */
