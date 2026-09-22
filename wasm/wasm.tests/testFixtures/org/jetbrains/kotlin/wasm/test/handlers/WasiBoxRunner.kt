@@ -20,14 +20,15 @@ import org.jetbrains.kotlin.test.services.configuration.useNewExceptionHandling
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.test.testInfraError
 import org.jetbrains.kotlin.wasm.test.tools.WasmVM
-import org.jetbrains.kotlin.wasm.test.tools.WasmVmDescriptor
+import org.jetbrains.kotlin.wasm.test.tools.WASI_BOX_ENTRY_EXPORT
+import org.jetbrains.kotlin.wasm.test.tools.WASI_UNIT_TESTS_ENTRY_EXPORT
 import java.io.File
 import java.io.InputStream
 
 /**
  * The `test.mjs` launcher for WASI unit-test and grouped runs under Node.js, exiting with code 1 on any uncaught
- * exception (e.g. a hard VM trap). WasmEdge and Wasmtime bypass this script and invoke the artifact's `startTest`
- * export directly (see [WasmVM.WasmEdge] and [WasmVM.Wasmtime]).
+ * exception (e.g. a hard VM trap). WasmEdge and Wasmtime bypass this script and invoke one export of the artifact
+ * directly, chosen by [wasiStandaloneEntryExport] (see [WasmVM.WasmEdge] and [WasmVM.Wasmtime]).
  *
  * [callGroupedTestsDriver] must come from the artifact the stage-2 facade produced, not from probing the exports:
  * `wasiBoxTestRun.kt` exports a `startTest()` of its own that merely runs `box()`, so a probe would run `box()` in
@@ -284,25 +285,19 @@ internal fun assertDriverOwnsStartTestExport(dir: File) {
 }
 
 /**
- * Rejects unit-test runs that would invoke the per-test `box()` helper on standalone WASI VMs instead of the unit-test runner,
- * because the artifact has no grouped-tests driver to provide the correct entry point.
+ * The export the standalone WASI VMs invoke. Unlike the Node.js launcher script, they run exactly one export per
+ * process, so a driverless `// RUN_UNIT_TESTS` run goes through the compiler's [WASI_UNIT_TESTS_ENTRY_EXPORT] rather
+ * than through the helper's `startTest`, which would run `box()` alone and leave the unit tests unexecuted. The
+ * test's `box()` is still checked on that path: `WasmJsLauncherAdditionalSourceProvider` links a `@Test` launcher
+ * that calls it, so the one export covers the unit tests and the box verdict alike.
+ *
+ * A driver-linked batch owns `startTest` (see [assertDriverOwnsStartTestExport]) and reports through the driver, so
+ * the unit-test runner must not be driven on top of it.
  */
-internal fun checkUnitTestRunnerSupport(
-    hasGroupedTestsDriver: Boolean,
-    runUnitTests: Boolean,
-    vmsToCheck: List<WasmVmDescriptor>,
-) {
-    if (hasGroupedTestsDriver || !runUnitTests) return
-
-    val standaloneVms = vmsToCheck.filter { !it.entryPointIsJsFile }
-    if (standaloneVms.isEmpty()) return
-
-    testInfraError(
-        "A `// RUN_UNIT_TESTS` WASI test cannot report its results on ${standaloneVms.map { it.vmName }}: " +
-                "those VMs invoke the bare `startTest` export, which is `wasiBoxTestRun.kt`'s `box()` " +
-                "helper rather than the unit-test runner. Run such a test on Node.js only, or export a " +
-                "unit-test entry point for the standalone VMs to invoke."
-    )
+internal fun wasiStandaloneEntryExport(hasGroupedTestsDriver: Boolean, runUnitTests: Boolean): String = when {
+    hasGroupedTestsDriver -> WASI_BOX_ENTRY_EXPORT
+    runUnitTests -> WASI_UNIT_TESTS_ENTRY_EXPORT
+    else -> WASI_BOX_ENTRY_EXPORT
 }
 
 // TODO reduce amount of duplicated code between this class and WasmBoxRunner
@@ -341,17 +336,10 @@ class WasiBoxRunner(
         val originalFile = testServices.moduleStructure.originalTestDataFiles.first()
 
         val debugMode = DebugMode.fromSystemProperty("kotlin.wasm.debugMode")
-        val startUnitTests = useUnitTestRunnerOnly || RUN_UNIT_TESTS in testServices.moduleStructure.allDirectives
+        val runUnitTestsDirective = RUN_UNIT_TESTS in testServices.moduleStructure.allDirectives
+        val startUnitTests = useUnitTestRunnerOnly || runUnitTestsDirective
         val callGroupedTestsDriver = artifacts.hasGroupedTestsDriver
-
-        // Unconditional, as in `WasmWasiFolderGroupingStageBoxRunner`: what makes the unit tests unreachable is the
-        // directive plus a driverless standalone VM, not the mode this runner was invoked in. A box run that also
-        // starts the unit tests reaches those VMs through the very same bare `startTest` export.
-        checkUnitTestRunnerSupport(
-            hasGroupedTestsDriver = callGroupedTestsDriver,
-            runUnitTests = startUnitTests,
-            vmsToCheck = vmsToCheck,
-        )
+        val standaloneEntryExport = wasiStandaloneEntryExport(callGroupedTestsDriver, runUnitTests = startUnitTests)
 
         val testWasiQuiet = if (useUnitTestRunnerOnly) startUnitTestsWasiScript(callGroupedTestsDriver)
         else """
@@ -405,6 +393,8 @@ class WasiBoxRunner(
                     workingDirectory = dir,
                     executionName = formatWasmExecutionName(vm.vmName, mode),
                     outputCollector = outputCollector,
+                    wasiEntryExport = standaloneEntryExport,
+                    expectUnitTestReport = runUnitTestsDirective && !callGroupedTestsDriver,
                 )
             }
 
@@ -459,15 +449,12 @@ open class WasmWasiFolderGroupingStageBoxRunner(
         val folderArtifact = artifact as WasmFolderBinaryArtifact
         val folder = folderArtifact.folder
         val debugMode = DebugMode.fromSystemProperty("kotlin.wasm.debugMode")
-
-        checkUnitTestRunnerSupport(
-            hasGroupedTestsDriver = folderArtifact.hasGroupedTestsDriver,
-            runUnitTests = useUnitTestRunnerOnly ||
-                    RUN_UNIT_TESTS in firstNonGroupingTestServices.moduleStructure.allDirectives,
-            vmsToCheck = vmsToCheck,
-        )
-
         val callGroupedTestsDriver = folderArtifact.hasGroupedTestsDriver
+        val runUnitTestsDirective = RUN_UNIT_TESTS in firstNonGroupingTestServices.moduleStructure.allDirectives
+        val standaloneEntryExport = wasiStandaloneEntryExport(
+            callGroupedTestsDriver,
+            runUnitTests = useUnitTestRunnerOnly || runUnitTestsDirective,
+        )
         if (callGroupedTestsDriver) assertDriverOwnsStartTestExport(folder)
 
         val testWasi = startUnitTestsWasiScript(callGroupedTestsDriver)
@@ -484,6 +471,8 @@ open class WasmWasiFolderGroupingStageBoxRunner(
                 workingDirectory = folder,
                 executionName = formatWasmExecutionName(vm.vmName, "dev"),
                 outputCollector = collectedOutputs,
+                wasiEntryExport = standaloneEntryExport,
+                expectUnitTestReport = runUnitTestsDirective && !callGroupedTestsDriver,
             )
         }
     }

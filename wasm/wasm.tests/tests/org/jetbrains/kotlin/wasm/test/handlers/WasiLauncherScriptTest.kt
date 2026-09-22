@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.wasm.test.handlers
 import org.jetbrains.kotlin.test.TestInfrastructureException
 import org.jetbrains.kotlin.test.DebugMode
 import org.jetbrains.kotlin.wasm.test.blackbox.WasmWasiGroupedTestsExportedEntryPointGenerator
-import org.jetbrains.kotlin.wasm.test.tools.WasmVmDescriptor
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -60,60 +59,49 @@ class WasiLauncherScriptTest {
     }
 
     @Test
-    fun `given a driverless unit-test run on a standalone VM then the run is rejected`() {
-        // Those VMs invoke the bare `startTest` export, which without a driver is `wasiBoxTestRun.kt`'s `box()`
-        // helper: the unit tests would not run at all and the batch would still be green.
-        val error = assertThrows(TestInfrastructureException::class.java) {
-            checkUnitTestRunnerSupport(
-                hasGroupedTestsDriver = false,
-                runUnitTests = true,
-                vmsToCheck = listOf(nodeJs, wasmEdge, wasmtime),
-            )
-        }
-
-        val message = error.message.orEmpty()
-        assertTrue(wasmEdge.vmName in message, message)
-        assertTrue(wasmtime.vmName in message, message)
-        assertFalse(nodeJs.vmName in message, message)
+    fun `given a driverless unit-test run then the standalone VMs invoke the unit-test runner export`() {
+        // Invoking the bare `startTest` here would run `wasiBoxTestRun.kt`'s `box()` helper alone: the unit tests
+        // would not run at all and the test would still be green.
+        assertEquals("startUnitTests", wasiStandaloneEntryExport(hasGroupedTestsDriver = false, runUnitTests = true))
     }
 
     @Test
-    fun `given a driver or a JS-entry-point VM then the unit-test run is accepted`() {
-        // With the driver linked in, `startTest` is the driver itself; Node.js goes through `test.mjs` either way.
-        assertDoesNotThrow {
-            checkUnitTestRunnerSupport(
-                hasGroupedTestsDriver = true,
-                runUnitTests = true,
-                vmsToCheck = listOf(wasmEdge, wasmtime),
-            )
-        }
-        assertDoesNotThrow {
-            checkUnitTestRunnerSupport(
-                hasGroupedTestsDriver = false,
-                runUnitTests = true,
-                vmsToCheck = listOf(nodeJs),
-            )
-        }
-        assertDoesNotThrow {
-            checkUnitTestRunnerSupport(
-                hasGroupedTestsDriver = false,
-                runUnitTests = false,
-                vmsToCheck = listOf(wasmEdge),
-            )
-        }
+    fun `given a driver-linked batch then the standalone VMs invoke the driver even when unit tests are requested`() {
+        // The driver reports through stdout, so the unit-test runner must not be driven on top of it.
+        assertEquals("startTest", wasiStandaloneEntryExport(hasGroupedTestsDriver = true, runUnitTests = true))
+        assertEquals("startTest", wasiStandaloneEntryExport(hasGroupedTestsDriver = true, runUnitTests = false))
     }
 
     @Test
-    fun `given an explicit unit-test-only invocation on a standalone VM then it is rejected`() {
-        val error = assertThrows(TestInfrastructureException::class.java) {
-            checkUnitTestRunnerSupport(
-                hasGroupedTestsDriver = false,
-                runUnitTests = true,
-                vmsToCheck = listOf(wasmtime),
-            )
-        }
+    fun `given a driverless box run then the standalone VMs invoke the box helper`() {
+        assertEquals("startTest", wasiStandaloneEntryExport(hasGroupedTestsDriver = false, runUnitTests = false))
+    }
 
-        assertTrue("unit-test runner" in error.message.orEmpty(), error.message.orEmpty())
+    @Test
+    fun `given the Node launcher for a driverless unit-test run then it calls the same export the standalone VMs do`() {
+        val export = wasiStandaloneEntryExport(hasGroupedTestsDriver = false, runUnitTests = true)
+
+        assertTrue("jsModule.$export();" in startUnitTestsWasiScript(callGroupedTestsDriver = false))
+    }
+
+    @Test
+    fun `given a unit-test run whose output shows no test starting then the run is rejected`() {
+        // What a VM prints when it invoked the box helper instead of the unit-test runner: `box()` ran, no `@Test` did.
+        val error = checkUnitTestsReported(output = "box output\n", executionName = "Wasmtime (dev)")
+
+        val message = error?.message.orEmpty()
+        assertTrue("reported no test in Wasmtime (dev)" in message, message)
+        assertTrue(UNIT_TEST_STARTED_MARKER in message, message)
+        assertTrue("box output" in message, message)
+    }
+
+    @Test
+    fun `given a unit-test run whose output shows a test starting then the run is accepted`() {
+        val output = "##teamcity[testSuiteStarted name='' flowId='f']\n" +
+                "##teamcity[testStarted name='runTest' flowId='f']\n" +
+                "##teamcity[testFinished name='runTest' flowId='f']\n"
+
+        assertEquals(null, checkUnitTestsReported(output, executionName = "WasmEdge (dev)"))
     }
 
     @Test
@@ -384,21 +372,6 @@ class WasiLauncherScriptTest {
     private fun writeWasmModule(dir: File, vararg exports: String) {
         dir.resolve("index.wasm").writeBytes(wasmModuleBytes(exports.toList()))
     }
-
-    /** Stands in for [org.jetbrains.kotlin.wasm.test.tools.WasmVM.NodeJs] without resolving a real engine path. */
-    private val nodeJs = fakeVm("NodeJs", entryPointIsJsFile = true)
-
-    /** Stands in for [org.jetbrains.kotlin.wasm.test.tools.WasmVM.WasmEdge]. */
-    private val wasmEdge = fakeVm("WasmEdge", entryPointIsJsFile = false)
-
-    /** Stands in for [org.jetbrains.kotlin.wasm.test.tools.WasmVM.Wasmtime]. */
-    private val wasmtime = fakeVm("Wasmtime", entryPointIsJsFile = false)
-
-    private fun fakeVm(name: String, entryPointIsJsFile: Boolean): WasmVmDescriptor =
-        object : WasmVmDescriptor {
-            override val vmName: String = name
-            override val entryPointIsJsFile: Boolean = entryPointIsJsFile
-        }
 
     /** [extraSections] are written before the export section, so the reader has to skip over them to reach it. */
     private fun wasmModuleBytes(
