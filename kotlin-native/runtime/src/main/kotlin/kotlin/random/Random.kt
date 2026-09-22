@@ -20,7 +20,6 @@ internal actual fun doubleFromParts(hi26: Int, low27: Int): Double =
  */
 private class NativeRandom : Random() {
     private var state = stateFromSeed(SeedAllocator.nextSeed())
-    private fun stateFromSeed(seed: Long) = (seed xor MULTIPLIER) and MASK
 
     override fun nextBits(bitCount: Int): Int {
         val nextState = (state * MULTIPLIER + INCREMENT) and MASK
@@ -38,6 +37,8 @@ private class NativeRandom : Random() {
         private const val INCREMENT = 0xbL
         private const val MODULUS = 48
         private const val MASK = (1L shl MODULUS) - 1
+
+        fun stateFromSeed(seed: Long) = (seed xor MULTIPLIER) and MASK
     }
 }
 
