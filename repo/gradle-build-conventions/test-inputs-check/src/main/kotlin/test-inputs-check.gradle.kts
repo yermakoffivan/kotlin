@@ -30,20 +30,19 @@ fun configureTestTask(test: Test) {
     test.addLazyBooleanSystemProperty(testInputsCheck.failFast, "test.instrumenter.fail.fast")
 
     test.doFirst {
-        fun declaredInputPaths(file: File): List<String> {
-            val path = file.toPath()
-            if (!Files.isSymbolicLink(path)) return listOf(file.path)
+        fun File.expandSymlinks(): List<String> {
+            if (!Files.isSymbolicLink(toPath())) return listOf(path)
             val realPath = try {
-                path.toRealPath().toString()
+                toPath().toRealPath().toString()
             } catch (_: IOException) {
-                return listOf(file.path) // dangling symlink
+                return listOf(path) // dangling symlink
             }
-            return listOf(file.path, realPath)
+            return listOf(path, realPath)
         }
 
         declaredInputsFile.get().asFile.apply {
             parentFile.mkdirs()
-            writeText(inputs.files.asFileTree.flatMapTo(LinkedHashSet()) { declaredInputPaths(it) }.joinToString(separator = "\n"))
+            writeText(inputs.files.asFileTree.flatMapTo(LinkedHashSet(), File::expandSymlinks).joinToString("\n"))
         }
     }
 }
